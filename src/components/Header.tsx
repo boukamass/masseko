@@ -1,5 +1,6 @@
 import React from 'react';
 import { Waves, Database, Smartphone, ShieldCheck, RefreshCw, Code2, MapPin, CheckCircle2, Play } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   activeTab: string;
@@ -48,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onRepla
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <PWAInstallButton />
             {onReplaySplash && (
               <button
                 onClick={onReplaySplash}

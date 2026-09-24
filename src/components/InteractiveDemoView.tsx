@@ -49,6 +49,14 @@ interface InteractiveDemoViewProps {
 }
 
 export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replayTrigger }) => {
+  // Mode d'affichage : 'pure_mobile' (Application mobile Android 100% plein écran) ou 'web_demo' (Vue cadre téléphone + console)
+  const [displayMode, setDisplayMode] = useState<'pure_mobile' | 'web_demo'>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024 ? 'pure_mobile' : 'web_demo';
+    }
+    return 'web_demo';
+  });
+
   // Mobile App screen state inside the phone simulator
   const [showMobileSplash, setShowMobileSplash] = useState<boolean>(true);
   const [mobileScreen, setMobileScreen] = useState<DemoScreen>('home');
@@ -283,18 +291,46 @@ export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replay
 
   return (
     <div className="space-y-4">
-      {/* Sleek Minimalist Control Bar */}
+      {/* Mode Selector & Control Bar */}
       <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+        {/* Display Mode Toggle (Pure Mobile vs Web Presentation) */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
+          <button
+            type="button"
+            onClick={() => setDisplayMode('pure_mobile')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+              displayMode === 'pure_mobile'
+                ? 'bg-[#0A3D62] text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+            <span>📱 App Mobile Native (Plein Écran)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayMode('web_demo')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+              displayMode === 'web_demo'
+                ? 'bg-[#0A3D62] text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <span>💻 Vue Démo Web & Console</span>
+          </button>
+        </div>
+
+        {/* Quick Screen Shortcuts */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
           <span className="text-[11px] font-black uppercase text-slate-400 tracking-wider whitespace-nowrap shrink-0 mr-1">
-            Écrans :
+            Écran :
           </span>
           {[
             { id: 'home' as DemoScreen, label: 'Accueil' },
             { id: 'map' as DemoScreen, label: 'Carte' },
             { id: 'report' as DemoScreen, label: 'Signaler' },
             { id: 'education' as DemoScreen, label: 'Académie' },
-            { id: 'tour' as DemoScreen, label: 'Tournée & Pesée' },
+            { id: 'tour' as DemoScreen, label: 'Tournée' },
             { id: 'scan' as DemoScreen, label: 'Scan QR' },
             { id: 'impact' as DemoScreen, label: 'Impact' },
           ].map((s) => (
@@ -304,10 +340,10 @@ export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replay
                 setShowMobileSplash(false);
                 setMobileScreen(s.id);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                 !showMobileSplash && mobileScreen === s.id
-                  ? 'bg-[#0A3D62] dark:bg-teal-600 text-white shadow-xs'
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
               }`}
             >
               {s.label}
@@ -332,7 +368,7 @@ export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replay
             {isOnline ? (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>En Ligne (Réseau 4G)</span>
+                <span>En Ligne (4G)</span>
               </>
             ) : (
               <>
@@ -344,20 +380,14 @@ export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replay
         </div>
       </div>
 
-      {/* Main Container: Phone Simulator on Left, Supervision Console on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ================= LEFT: PHONE SIMULATOR ================= */}
-        <div className="lg:col-span-6 xl:col-span-5 flex justify-center">
-          <div className="relative w-[370px] sm:w-[395px] h-[800px] bg-slate-950 rounded-[48px] p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700/80 flex flex-col justify-between overflow-hidden">
-            {/* Top Speaker / Dynamic Island Bezel */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-40 flex items-center justify-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800"></div>
-              <div className="w-10 h-1 rounded-full bg-slate-800"></div>
-            </div>
-
+      {/* RENDER MODE 1: PURE MOBILE NATIVE FULL-SCREEN APP MODE */}
+      {displayMode === 'pure_mobile' ? (
+        <div className="flex flex-col items-center justify-center min-h-[82vh] w-full py-2">
+          {/* Mobile Screen Container spanning full mobile width */}
+          <div className="w-full max-w-md min-h-[820px] bg-slate-900 rounded-3xl sm:border-2 sm:border-slate-800 shadow-2xl flex flex-col justify-between overflow-hidden relative isolate">
             {/* Inner Phone Screen Content */}
             <div
-              className={`relative w-full h-full rounded-[40px] overflow-hidden flex flex-col justify-between transition-colors ${
+              className={`relative w-full h-full min-h-[820px] flex flex-col justify-between transition-colors ${
                 themeMode === 'fixora' ? 'bg-[#F8FAFC]' : 'bg-[#0B131F]'
               }`}
             >
@@ -536,37 +566,236 @@ export const InteractiveDemoView: React.FC<InteractiveDemoViewProps> = ({ replay
                     setMobileScreen={setMobileScreen}
                     themeMode={themeMode}
                   />
-
-                  {/* Home Indicator Bar */}
-                  <div className="py-1 flex justify-center bg-transparent">
-                    <div className="w-28 h-1 rounded-full bg-slate-400/40"></div>
-                  </div>
                 </>
               )}
             </div>
           </div>
         </div>
+      ) : (
+        /* RENDER MODE 2: WEB PRESENTATION DEMO MODE (Phone frame mockup + Supervision Console) */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ================= LEFT: PHONE SIMULATOR ================= */}
+          <div className="lg:col-span-6 xl:col-span-5 flex justify-center">
+            <div className="relative w-[370px] sm:w-[395px] h-[800px] bg-slate-950 rounded-[48px] p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700/80 flex flex-col justify-between overflow-hidden">
+              {/* Top Speaker / Dynamic Island Bezel */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-40 flex items-center justify-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800"></div>
+                <div className="w-10 h-1 rounded-full bg-slate-800"></div>
+              </div>
 
-        {/* ================= RIGHT: DESKTOP SUPERVISION & TELEMETRY PANEL ================= */}
-        <div className="lg:col-span-6 xl:col-span-7">
-          <DesktopCompanion
-            reports={reports}
-            selectedMapPoint={selectedMapPoint}
-            setSelectedMapPoint={setSelectedMapPoint}
-            isOnline={isOnline}
-            setIsOnline={setIsOnline}
-            syncPendingReports={syncPendingReports}
-            mobileScreen={mobileScreen}
-            setMobileScreen={setMobileScreen}
-            handleApproveReport={handleApproveReport}
-            handleRejectReport={handleRejectReport}
-            setShowDonorExportModal={setShowDonorExportModal}
-            handleDownloadDonorCSV={handleDownloadDonorCSV}
-            isRangerVerified={isRangerVerified}
-            setIsRangerVerified={setIsRangerVerified}
-          />
+              {/* Inner Phone Screen Content */}
+              <div
+                className={`relative w-full h-full rounded-[40px] overflow-hidden flex flex-col justify-between transition-colors ${
+                  themeMode === 'fixora' ? 'bg-[#F8FAFC]' : 'bg-[#0B131F]'
+                }`}
+              >
+                {/* Splash Screen Overlay inside phone */}
+                {showMobileSplash ? (
+                  <SplashScreen onFinish={() => setShowMobileSplash(false)} />
+                ) : (
+                  <>
+                    {/* Top Bar (Status bar, network, theme toggle, user profile) */}
+                    <MobileTopBar
+                      isOnline={isOnline}
+                      setIsOnline={setIsOnline}
+                      syncPendingReports={syncPendingReports}
+                      themeMode={themeMode}
+                      setThemeMode={setThemeMode}
+                      pendingSyncCount={pendingCount}
+                      currentUser={currentUser}
+                      onOpenProfile={() => setShowProfileModal(true)}
+                      onOpenAuth={() => setMobileScreen('auth')}
+                      onOpenEducation={() => setMobileScreen('education')}
+                    />
+
+                    {/* Scrollable Main Viewport */}
+                    <div className="flex-1 overflow-y-auto px-3.5 py-2.5 scrollbar-thin">
+                      {mobileScreen === 'onboarding' && (
+                        <OnboardingScreen
+                          setMobileScreen={setMobileScreen}
+                          themeMode={themeMode}
+                        />
+                      )}
+
+                      {mobileScreen === 'auth' && (
+                        <AuthScreen
+                          currentUser={currentUser}
+                          onLogin={(u) => {
+                            setCurrentUser(u);
+                          }}
+                          onRegister={(newUser) => {
+                            setCurrentUser(newUser);
+                          }}
+                          setMobileScreen={setMobileScreen}
+                          themeMode={themeMode}
+                        />
+                      )}
+
+                      {mobileScreen === 'education' && (
+                        <EducationScreen
+                          setMobileScreen={setMobileScreen}
+                          themeMode={themeMode}
+                          currentUser={currentUser}
+                          onAwardPoints={(points) => {
+                            if (currentUser) {
+                              setCurrentUser((prev) =>
+                                prev ? { ...prev, points: prev.points + points } : null
+                              );
+                            }
+                          }}
+                          triggerAudioGuidance={triggerAudioGuidance}
+                        />
+                      )}
+
+                      {mobileScreen === 'home' && (
+                        <HomeScreen
+                          reports={reports}
+                          setMobileScreen={setMobileScreen}
+                          setSelectedMapPoint={setSelectedMapPoint}
+                          themeMode={themeMode}
+                          isOnline={isOnline}
+                          currentUser={currentUser}
+                          onOpenProfile={() => setShowProfileModal(true)}
+                        />
+                      )}
+
+                      {mobileScreen === 'map' && (
+                        <MapScreen
+                          reports={reports}
+                          selectedMapPoint={selectedMapPoint}
+                          setSelectedMapPoint={setSelectedMapPoint}
+                          mapFilter={mapFilter}
+                          setMapFilter={setMapFilter}
+                          mapSectorFilter={mapSectorFilter}
+                          setMapSectorFilter={setMapSectorFilter}
+                          isRangerVerified={isRangerVerified}
+                          setIsRangerVerified={setIsRangerVerified}
+                          mapTileMode={mapTileMode}
+                          setMapTileMode={setMapTileMode}
+                          themeMode={themeMode}
+                          setMobileScreen={setMobileScreen}
+                          handleApproveReport={handleApproveReport}
+                          handleRejectReport={handleRejectReport}
+                        />
+                      )}
+
+                      {mobileScreen === 'report' && (
+                        <ReportScreen
+                          reportStep={reportStep}
+                          setReportStep={setReportStep}
+                          locationName={locationName}
+                          setLocationName={setLocationName}
+                          wasteType={wasteType}
+                          setWasteType={setWasteType}
+                          estimatedVolume={estimatedVolume}
+                          setEstimatedVolume={setEstimatedVolume}
+                          isNestingZone={isNestingZone}
+                          setIsNestingZone={setIsNestingZone}
+                          turtleDangerLevelText={turtleDangerLevelText}
+                          setTurtleDangerLevelText={setTurtleDangerLevelText}
+                          description={description}
+                          setDescription={setDescription}
+                          handleCreateReport={handleCreateReport}
+                          calculateDynamicScore={calculateDynamicScore}
+                          themeMode={themeMode}
+                          speechLanguage={speechLanguage}
+                          setSpeechLanguage={setSpeechLanguage}
+                          triggerAudioGuidance={triggerAudioGuidance}
+                          activeSpeechText={activeSpeechText}
+                          reportSuccess={reportSuccess}
+                          setMobileScreen={setMobileScreen}
+                        />
+                      )}
+
+                      {mobileScreen === 'scan' && (
+                        <ScanScreen
+                          scanScreenMode={scanScreenMode}
+                          setScanScreenMode={setScanScreenMode}
+                          setMobileScreen={setMobileScreen}
+                          setScannedLotId={setScannedLotId}
+                          themeMode={themeMode}
+                        />
+                      )}
+
+                      {mobileScreen === 'tour' && (
+                        <TourScreen
+                          selectedTourId={selectedTourId}
+                          setSelectedTourId={setSelectedTourId}
+                          reports={reports}
+                          selectedReportToCollect={selectedReportToCollect}
+                          setSelectedReportToCollect={setSelectedReportToCollect}
+                          weighInput={weighInput}
+                          setWeighInput={setWeighInput}
+                          handleValidateCollection={handleValidateCollection}
+                          weighSuccess={weighSuccess}
+                          isRouteOptimized={isRouteOptimized}
+                          setIsRouteOptimized={setIsRouteOptimized}
+                          themeMode={themeMode}
+                          setMobileScreen={setMobileScreen}
+                        />
+                      )}
+
+                      {mobileScreen === 'lot' && (
+                        <LotScreen
+                          scannedLotId={scannedLotId}
+                          selectedRecyclerId={selectedRecyclerId}
+                          setSelectedRecyclerId={setSelectedRecyclerId}
+                          themeMode={themeMode}
+                          setMobileScreen={setMobileScreen}
+                        />
+                      )}
+
+                      {mobileScreen === 'impact' && (
+                        <ImpactScreen
+                          selectedCampaignId={selectedCampaignId}
+                          setSelectedCampaignId={setSelectedCampaignId}
+                          reports={reports}
+                          themeMode={themeMode}
+                          setShowDonorExportModal={setShowDonorExportModal}
+                          handleDownloadDonorCSV={handleDownloadDonorCSV}
+                          setMobileScreen={setMobileScreen}
+                        />
+                      )}
+                    </div>
+
+                    {/* Standard 5-Tab Navigation Bar */}
+                    <MobileBottomNav
+                      mobileScreen={mobileScreen}
+                      setMobileScreen={setMobileScreen}
+                      themeMode={themeMode}
+                    />
+
+                    {/* Home Indicator Bar */}
+                    <div className="py-1 flex justify-center bg-transparent">
+                      <div className="w-28 h-1 rounded-full bg-slate-400/40"></div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ================= RIGHT: DESKTOP SUPERVISION & TELEMETRY PANEL ================= */}
+          <div className="lg:col-span-6 xl:col-span-7">
+            <DesktopCompanion
+              reports={reports}
+              selectedMapPoint={selectedMapPoint}
+              setSelectedMapPoint={setSelectedMapPoint}
+              isOnline={isOnline}
+              setIsOnline={setIsOnline}
+              syncPendingReports={syncPendingReports}
+              mobileScreen={mobileScreen}
+              setMobileScreen={setMobileScreen}
+              handleApproveReport={handleApproveReport}
+              handleRejectReport={handleRejectReport}
+              setShowDonorExportModal={setShowDonorExportModal}
+              handleDownloadDonorCSV={handleDownloadDonorCSV}
+              isRangerVerified={isRangerVerified}
+              setIsRangerVerified={setIsRangerVerified}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Official Donor Export Modal */}
       <DonorExportModal
