@@ -98,41 +98,31 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     return true;
   });
 
-  // Determine active tile URL based on mode
+  // Determine active tile URL based on mode (100% Free & Open - No API Key Required)
   const getTileConfig = useCallback(() => {
     if (mapTileMode === 'satellite') {
       return {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         options: {
-          maxZoom: 17,
-          subdomains: ['server', 'services'],
-          attribution: 'Tiles &copy; Esri',
-        },
-      };
-    }
-
-    if (isFixora) {
-      // Crisp light Uber-style map
-      return {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        options: {
           maxZoom: 18,
-          subdomains: 'abcd',
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: ['server', 'services'],
+          attribution: '&copy; Esri &mdash; Satellite HD Pointe-Noire',
+          crossOrigin: true,
         },
       };
     }
 
-    // Modern sleek dark / maritime map
+    // Official OpenStreetMap Standard Tiles - 100% Free, Reliable, No API Key Required
     return {
-      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       options: {
-        maxZoom: 18,
-        subdomains: 'abcd',
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 19,
+        subdomains: ['a', 'b', 'c'],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributeurs',
+        crossOrigin: true,
       },
     };
-  }, [mapTileMode, isFixora]);
+  }, [mapTileMode]);
 
   // 1. Initialize Leaflet Map Instance
   useEffect(() => {
@@ -142,8 +132,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     const map = L.map(mapContainerRef.current, {
       center: POINTE_NOIRE_CENTER,
       zoom: DEFAULT_BALANCED_ZOOM,
-      minZoom: 10.5,
-      maxZoom: 15.5, // Keep maximum zoom constrained so it never zooms in too aggressively
+      minZoom: 10,
+      maxZoom: 18,
       zoomControl: false, // We provide sleek Uber-style floating controls
       attributionControl: false,
     });
@@ -164,13 +154,32 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       setCurrentZoom(map.getZoom());
     });
 
-    // Invalidate size once rendered in container to ensure all tiles display crisp
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
+    // Invalidate size on load and on container resize to ensure crisp complete tile rendering
+    const triggerInvalidate = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+
+    const t1 = setTimeout(triggerInvalidate, 60);
+    const t2 = setTimeout(triggerInvalidate, 200);
+    const t3 = setTimeout(triggerInvalidate, 500);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (mapContainerRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        triggerInvalidate();
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
