@@ -1,0 +1,903 @@
+import React, { useState } from 'react';
+import {
+  ArrowLeft,
+  GraduationCap,
+  Volume2,
+  VolumeX,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  ChevronRight,
+  Award,
+  RefreshCw,
+  Layers,
+  HelpCircle,
+  ExternalLink,
+  Flame,
+  Check,
+  RotateCcw
+} from 'lucide-react';
+import { DemoScreen } from '../MobileBottomNav';
+import { TurtleIcon } from '../TurtleIcon';
+import { UserProfile } from '../../../types/koba';
+
+interface EducationScreenProps {
+  setMobileScreen: (screen: DemoScreen) => void;
+  themeMode: 'forest' | 'fixora';
+  currentUser?: UserProfile | null;
+  onAwardPoints?: (points: number) => void;
+  triggerAudioGuidance?: (french: string, lingala: string, kituba: string) => void;
+}
+
+type EduTab = 'turtles' | 'lifespan' | 'circular' | 'quiz';
+
+interface TurtleSpecies {
+  id: string;
+  name: string;
+  scientificName: string;
+  weight: string;
+  size: string;
+  diet: string;
+  nestingPeriod: string;
+  danger: string;
+  whyDanger: string;
+  tagColor: string;
+  imageUrl: string;
+}
+
+const TURTLE_SPECIES: TurtleSpecies[] = [
+  {
+    id: 'luth',
+    name: 'Tortue Luth',
+    scientificName: 'Dermochelys coriacea',
+    weight: '300 à 650 kg',
+    size: 'Jusqu\'à 2,20 mètres',
+    diet: 'Méduses marines exclusivement',
+    nestingPeriod: 'Octobre à Février (Songolo & Côte Sauvage)',
+    danger: 'Sacs plastiques transparents flottants',
+    whyDanger: 'Confondus avec des méduses. Provoquent une occlusion de l\'estomac et une mort par inanition.',
+    tagColor: 'emerald',
+    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'olivacee',
+    name: 'Tortue Olivâtre',
+    scientificName: 'Lepidochelys olivacea',
+    weight: '35 à 50 kg',
+    size: '60 à 75 centimètres',
+    diet: 'Crabes, crevettes et mollusques côtiers',
+    nestingPeriod: 'Novembre à Mars (Estran de Djeno & Mondongo)',
+    danger: 'Filets fantômes et cordages en nylon',
+    whyDanger: 'S\'emmêle sous l\'eau. Incapable de remonter respirer à la surface en 45 minutes, elle se noie.',
+    tagColor: 'blue',
+    imageUrl: 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'verte',
+    name: 'Tortue Verte',
+    scientificName: 'Chelonia mydas',
+    weight: '120 à 200 kg',
+    size: '1 à 1,30 mètre',
+    diet: 'Herbiers marins et algues de fond',
+    nestingPeriod: 'Toute l\'année au large, ponte sporadique',
+    danger: 'Micro-plastiques et bidons toxiques',
+    whyDanger: 'Ingestion involontaire lors du broutage des fonds marins. Perturbe gravement la reproduction.',
+    tagColor: 'teal',
+    imageUrl: 'https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&w=800&q=80',
+  },
+];
+
+const DECOMPOSITION_ITEMS = [
+  {
+    id: 'sac',
+    name: 'Sac Plastique (LDPE)',
+    years: '20 à 50 ans',
+    barPercent: 18,
+    color: 'bg-amber-500',
+    consequence: 'Se fragmente en milliers de micro-plastiques toxiques ingérés par les poissons pêchés au filet à Pointe-Noire.',
+    localAlternative: 'Sacs réutilisables en raphia ou tissu local.',
+  },
+  {
+    id: 'canette',
+    name: 'Canette en Métal / Aluminium',
+    years: '200 ans',
+    barPercent: 42,
+    color: 'bg-orange-500',
+    consequence: 'Oxydation lente avec libération d\'oxydes métalliques blessant les pattes des nouveau-nés sur le sable.',
+    localAlternative: 'Collecte prioritaire pour fonderies artisanales d\'aluminium à Tié-Tié.',
+  },
+  {
+    id: 'bouteille',
+    name: 'Bouteille Plastique (PET 01)',
+    years: '450 ans',
+    barPercent: 75,
+    color: 'bg-rose-500',
+    consequence: 'Roule inlassablement dans les rouleaux de la Côte Sauvage. Met plus de 4 siècles à se dissoudre.',
+    localAlternative: 'Rachat à 250 FCFA/kg pour fabrication de pavés écologiques.',
+  },
+  {
+    id: 'filet',
+    name: 'Filet de Pêche Nylon (Filet Fantôme)',
+    years: '600 ans',
+    barPercent: 100,
+    color: 'bg-red-600',
+    consequence: 'Le piège le plus mortel. Continue de capturer poissons, dauphins et tortues pendant 6 siècles d\'affilée.',
+    localAlternative: 'Dépôt aux points relais Renatura contre prime écocitoyenne.',
+  },
+];
+
+const QUIZ_QUESTIONS = [
+  {
+    id: 1,
+    question: 'Pourquoi la Tortue Luth est-elle la première victime des sacs plastiques jetés en mer ?',
+    options: [
+      { text: 'Elle adore la couleur brillante du plastique', correct: false },
+      { text: 'Elle confond les sacs transparents avec les méduses dont elle se nourrit', correct: true },
+      { text: 'Les sacs l\'attirent pour construire son nid sur la plage', correct: false },
+    ],
+    explanation: 'La Tortue Luth se nourrit quasi-exclusivement de méduses. Dans l\'eau trouble du ressac, un sac plastique transparent flotte exactement comme une méduse vivante.',
+  },
+  {
+    id: 2,
+    question: 'Combien d\'années met une bouteille d\'eau en plastique (PET) à se dégrader dans l\'océan Atlantique ?',
+    options: [
+      { text: 'Environ 5 ans', correct: false },
+      { text: 'Environ 50 ans', correct: false },
+      { text: 'Environ 450 ans', correct: true },
+    ],
+    explanation: 'Une bouteille en plastique met environ 450 ans à disparaître. Pendant ce temps, elle étouffe les fonds et se divise en toxines durables.',
+  },
+  {
+    id: 3,
+    question: 'De nuit à Songolo, vous observez une tortue géante en train de creuser un nid. Quel est le bon geste ?',
+    options: [
+      { text: 'Allumer la torche du téléphone pour éclairer son visage', correct: false },
+      { text: 'Éteindre toute lumière, garder 10m de distance et faire un signalement discret sur Masseko', correct: true },
+      { text: 'La pousser vers l\'eau pour l\'aider à repartir plus vite', correct: false },
+    ],
+    explanation: 'La lumière blanche aveugle et terrorise les tortues reproductrices. Elles font demi-tour sans pondre ou abandonnent leurs œufs. Le calme et la discrétion sauvent la couvée.',
+  },
+  {
+    id: 4,
+    question: 'Que deviennent les plastiques collectés et tracés par l\'application Masseko à Pointe-Noire ?',
+    options: [
+      { text: 'Ils sont brûlés à ciel ouvert sur la plage', correct: false },
+      { text: 'Ils sont valorisés localement en pavés étanches et granulés recyclés', correct: true },
+      { text: 'Ils sont jetés dans les caniveaux de Tié-Tié', correct: false },
+    ],
+    explanation: 'Masseko connecte directement les collecteurs aux usines de recyclage locales pour créer des pavés écologiques imputrescibles pour cours d\'écoles et voiries.',
+  },
+];
+
+export const EducationScreen: React.FC<EducationScreenProps> = ({
+  setMobileScreen,
+  themeMode,
+  currentUser,
+  onAwardPoints,
+  triggerAudioGuidance,
+}) => {
+  const isFixora = themeMode === 'fixora';
+  const [activeTab, setActiveTab] = useState<EduTab>('turtles');
+  const [selectedTurtle, setSelectedTurtle] = useState<TurtleSpecies>(TURTLE_SPECIES[0]);
+  const [audioPlaying, setAudioPlaying] = useState<boolean>(false);
+
+  // Quiz state
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState<number>(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const [quizFinished, setQuizFinished] = useState<boolean>(false);
+  const [pointsClaimed, setPointsClaimed] = useState<boolean>(false);
+
+  const handleSelectAnswer = (optionIdx: number) => {
+    if (selectedAnswers[currentQuestionIdx] !== undefined) return; // already answered
+    const nextAnswers = [...selectedAnswers];
+    nextAnswers[currentQuestionIdx] = optionIdx;
+    setSelectedAnswers(nextAnswers);
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIdx < QUIZ_QUESTIONS.length - 1) {
+      setCurrentQuestionIdx(currentQuestionIdx + 1);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  const handleResetQuiz = () => {
+    setCurrentQuestionIdx(0);
+    setSelectedAnswers([]);
+    setQuizFinished(false);
+  };
+
+  const scoreCount = selectedAnswers.filter(
+    (ansIdx, qIdx) => ansIdx !== undefined && QUIZ_QUESTIONS[qIdx].options[ansIdx].correct
+  ).length;
+
+  const handleClaimPoints = () => {
+    if (!pointsClaimed && onAwardPoints) {
+      onAwardPoints(40);
+      setPointsClaimed(true);
+    }
+  };
+
+  const playAudioSummary = () => {
+    setAudioPlaying(true);
+    if (triggerAudioGuidance) {
+      triggerAudioGuidance(
+        'Bienvenue à l\'Académie Masseko. Apprenez comment protéger les tortues marines de Pointe-Noire et valoriser nos plages.',
+        'Boyei malamu na Eteyelo Masseko. Toyekola ndenge ya kobatela banyama ya mayi na bibale ya Pointe-Noire mpe kobimisa mosolo na bosoto.',
+        'Mbote na Académie Masseko. Beto longuka mutindu ya kukeba banyama ya mubu ya Pointe-Noire mpe kubalula mvindu na kimvwama.'
+      );
+    }
+    setTimeout(() => setAudioPlaying(false), 5000);
+  };
+
+  return (
+    <div className="space-y-3 pb-3">
+      {/* Top Header with Back Navigation */}
+      <div className="flex items-center justify-between pt-0.5 gap-2">
+        <button
+          type="button"
+          onClick={() => setMobileScreen('home')}
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors cursor-pointer py-1 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 whitespace-nowrap shrink-0"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+          <span className="whitespace-nowrap">Accueil</span>
+        </button>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={playAudioSummary}
+            className={`flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-1 rounded-full border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              audioPlaying
+                ? 'bg-emerald-600 text-white border-emerald-500 animate-pulse'
+                : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100'
+            }`}
+            title="Écouter le guide vocal (Français / Lingala / Kituba)"
+          >
+            {audioPlaying ? <Volume2 className="w-3 h-3 shrink-0" /> : <VolumeX className="w-3 h-3 shrink-0" />}
+            <span className="whitespace-nowrap">{audioPlaying ? 'Lecture Audio...' : 'Audio Vocal'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Hero Header Banner */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0F382A] via-[#164936] to-[#0A261E] text-white shadow-sm relative overflow-hidden">
+        <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
+          <TurtleIcon className="w-32 h-32" />
+        </div>
+
+        <div className="relative z-10 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="p-1 rounded-lg bg-emerald-500/20 text-emerald-300">
+              <GraduationCap className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
+              Académie Littoral Masseko
+            </span>
+          </div>
+
+          <h2 className="text-base font-black tracking-tight leading-tight">
+            Comprendre pour Mieux Protéger
+          </h2>
+
+          <p className="text-[10.5px] text-emerald-100/90 leading-relaxed max-w-[280px]">
+            Guide interactif des sanctuaires côtiers de Pointe-Noire, du cycle de vie des plastiques et de l'économie circulaire.
+          </p>
+
+          <div className="pt-1 flex items-center gap-3 text-[9.5px] font-bold text-emerald-200/80">
+            <span className="flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+              4 Modules Clés
+            </span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Award className="w-3 h-3 text-amber-300" />
+              +40 Pts Quiz Éco
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Modern 4-Tab Navigation Selector */}
+      <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-slate-200/80 dark:bg-slate-800/80 text-[9.5px] font-bold">
+        <button
+          type="button"
+          onClick={() => setActiveTab('turtles')}
+          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+            activeTab === 'turtles'
+              ? 'bg-emerald-700 text-white font-black shadow-2xs'
+              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+          }`}
+        >
+          <TurtleIcon className="w-3.5 h-3.5" />
+          <span className="leading-tight truncate">Tortues</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('lifespan')}
+          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+            activeTab === 'lifespan'
+              ? 'bg-emerald-700 text-white font-black shadow-2xs'
+              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+          }`}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span className="leading-tight truncate">Plastiques</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('circular')}
+          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+            activeTab === 'circular'
+              ? 'bg-emerald-700 text-white font-black shadow-2xs'
+              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+          }`}
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span className="leading-tight truncate">Recyclage</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('quiz')}
+          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+            activeTab === 'quiz'
+              ? 'bg-amber-600 text-white font-black shadow-2xs'
+              : 'text-amber-800 dark:text-amber-300 hover:text-amber-950'
+          }`}
+        >
+          <HelpCircle className="w-3.5 h-3.5" />
+          <span className="leading-tight truncate font-black">Quiz +40</span>
+        </button>
+      </div>
+
+      {/* TAB 1: TORTUES & BIODIVERSITÉ */}
+      {activeTab === 'turtles' && (
+        <div className="space-y-3">
+          {/* Species Selector Chips */}
+          <div className="space-y-1">
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block px-0.5">
+              Espèces Phares de Pointe-Noire
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              {TURTLE_SPECIES.map((species) => {
+                const isSelected = selectedTurtle.id === species.id;
+                return (
+                  <button
+                    key={species.id}
+                    type="button"
+                    onClick={() => setSelectedTurtle(species)}
+                    className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-500 shadow-2xs ring-1 ring-emerald-500/30'
+                        : isFixora
+                        ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <span className="text-[10.5px] font-black block truncate text-slate-900 dark:text-white">
+                      {species.name}
+                    </span>
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 italic block truncate">
+                      {species.scientificName}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Selected Species Card */}
+          <div
+            className={`p-3 rounded-2xl border space-y-2.5 transition-all ${
+              isFixora
+                ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
+                : 'bg-slate-900 border-slate-800 text-white'
+            }`}
+          >
+            <div className="relative h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+              <img
+                src={selectedTurtle.imageUrl}
+                alt={selectedTurtle.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2.5 text-white">
+                <span className="text-xs font-black">{selectedTurtle.name}</span>
+                <span className="text-[9px] text-emerald-200">{selectedTurtle.scientificName}</span>
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px] uppercase">Gabarit</span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-100">
+                  {selectedTurtle.weight}
+                </span>
+                <span className="text-[9px] text-slate-500 block truncate">{selectedTurtle.size}</span>
+              </div>
+
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px] uppercase">Régime Marin</span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-100 truncate block">
+                  {selectedTurtle.diet}
+                </span>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block truncate font-bold">
+                  {selectedTurtle.nestingPeriod.split('(')[0]}
+                </span>
+              </div>
+            </div>
+
+            {/* Lethal Danger Box */}
+            <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-[10.5px]">
+              <div className="flex items-center gap-1.5 font-black text-rose-800 dark:text-rose-300">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                <span>Danger Mortel : {selectedTurtle.danger}</span>
+              </div>
+              <p className="text-[10px] text-rose-950 dark:text-rose-200 mt-1 leading-relaxed">
+                {selectedTurtle.whyDanger}
+              </p>
+            </div>
+          </div>
+
+          {/* 4 Golden Rules Box */}
+          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 space-y-2">
+            <div className="flex items-center gap-1.5 text-emerald-900 dark:text-emerald-200 font-black text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Les 4 Réflexes d'Or en cas de Ponte Nocturne</span>
+            </div>
+
+            <div className="space-y-1.5 text-[10px] text-emerald-950 dark:text-emerald-100">
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                  1
+                </span>
+                <p>
+                  <strong className="font-extrabold">Zéro lumière vive :</strong> Éteignez torches blanches et flashs de téléphone. La lumière effraie la femelle qui fait demi-tour sans pondre.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                  2
+                </span>
+                <p>
+                  <strong className="font-extrabold">Distance de sécurité (10 m) :</strong> Ne jamais encercler, toucher la carapace ni manipuler les nouveau-nés émergeant du sable.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                  3
+                </span>
+                <p>
+                  <strong className="font-extrabold">Signalement Masseko :</strong> Enregistrez la position GPS discrètement avec le tag <span className="underline">Zone de Nids</span>.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                  4
+                </span>
+                <p>
+                  <strong className="font-extrabold">Alerte Renatura :</strong> Les écogardes partenaires posent une clôture grillagée pour sécuriser les œufs contre les braconniers et chiens errants.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: DURÉE DE VIE DES PLASTIQUES */}
+      {activeTab === 'lifespan' && (
+        <div className="space-y-3">
+          <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[10.5px]">
+            <span className="font-black text-amber-900 dark:text-amber-200 block">
+              Combien de temps vos déchets persistent-ils à Pointe-Noire ?
+            </span>
+            <p className="text-[10px] text-amber-800 dark:text-amber-300 mt-0.5 leading-tight">
+              Dans l'océan Atlantique, le sel, le soleil équatorial et les vagues ne détruisent pas le plastique : ils le fragmentent en poisons microscopiques.
+            </p>
+          </div>
+
+          {/* Timeline Items */}
+          <div className="space-y-2">
+            {DECOMPOSITION_ITEMS.map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-2xl border space-y-1.5 transition-all ${
+                  isFixora
+                    ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
+                    : 'bg-slate-900 border-slate-800 text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-white">
+                    {item.name}
+                  </span>
+                  <span className="font-black text-[11px] text-rose-600 dark:text-rose-400">
+                    {item.years}
+                  </span>
+                </div>
+
+                {/* Progress Bar of Eternity */}
+                <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div
+                    className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                    style={{ width: `${item.barPercent}%` }}
+                  />
+                </div>
+
+                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {item.consequence}
+                </p>
+
+                <div className="pt-1 flex items-center gap-1.5 text-[9.5px] font-bold text-sky-700 dark:text-sky-300">
+                  <CheckCircle2 className="w-3 h-3 shrink-0" />
+                  <span>Alternative locale : {item.localAlternative}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Impact Multiplier Simulation */}
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#0A3D62] to-[#0F2338] text-white shadow-xs space-y-1.5 border border-cyan-500/25">
+            <span className="text-[10px] font-black uppercase tracking-wider text-cyan-200 block">
+              Simulation Citoyenne Pointe-Noire
+            </span>
+            <div className="text-sm font-black leading-tight">
+              Si 1 000 foyers évitent 1 bouteille PET par jour pendant 1 an :
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1 text-[10px]">
+              <div className="p-2 rounded-xl bg-white/10 border border-white/10">
+                <span className="text-cyan-200 block font-bold">Volume évité</span>
+                <span className="text-base font-black">9,1 Tonnes</span>
+                <span className="text-[9px] text-cyan-100 block">de plastique en mer</span>
+              </div>
+              <div className="p-2 rounded-xl bg-white/10 border border-white/10">
+                <span className="text-cyan-200 block font-bold">Nids protégés</span>
+                <span className="text-base font-black">+18 Nids</span>
+                <span className="text-[9px] text-cyan-100 block">sauvés à Songolo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: ÉCONOMIE CIRCULAIRE & VALORISATION LOCALE */}
+      {activeTab === 'circular' && (
+        <div className="space-y-3">
+          <div className="p-2.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-[10.5px]">
+            <span className="font-black text-sky-900 dark:text-sky-200 block">
+              De l'Estran Sablonneux au Pavé Écologique
+            </span>
+            <p className="text-[10px] text-sky-800 dark:text-sky-300 mt-0.5 leading-tight">
+              Chaque kilogramme ramassé possède une valeur marchande tracée dans l'application Masseko.
+            </p>
+          </div>
+
+          {/* 4 Steps Journey */}
+          <div className="space-y-2">
+            <div
+              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-xl bg-sky-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                1
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                  Collecte & Dépôt Citoyen
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Les citoyens et pêcheurs ramassent les plastiques échoués. Dépôt dans l'un des 6 centres de quartier (Côte Sauvage, Mpita, Tié-Tié, Loandjili).
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                2
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                  Pesée Certifiée & QR Code Lot
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Le collecteur pèse le sac sur une balance connectée Bluetooth. Un passeport numérique infalsifiable (Lot QR) est généré en direct.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                3
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                  Rémunération & Mobile Money
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Crédit instantané d'Éco-Points convertibles en argent (Airtel Money / MTN MoMo) ou bons alimentaires chez les commerçants partenaires.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-xl bg-amber-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                4
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                  Moulage de Pavés Écologiques
+                </h4>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Mélangés à 70% avec du sable local, les plastiques fondus deviennent des pavés imperméables servant à paver les cours des écoles de Pointe-Noire.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Grid */}
+          <div className="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-2">
+            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+              Grille Officielle de Rachat au Kilogramme
+            </span>
+
+            <div className="grid grid-cols-2 gap-2 text-[10.5px]">
+              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px]">PET 01 (Bouteilles)</span>
+                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                  250 FCFA / kg
+                </span>
+                <span className="text-[9px] text-slate-500 block">Environ 30 bouteilles vides</span>
+              </div>
+
+              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px]">PEHD 02 (Bidons rigides)</span>
+                <span className="text-sm font-black text-blue-600 dark:text-blue-400">
+                  220 FCFA / kg
+                </span>
+                <span className="text-[9px] text-slate-500 block">Filière tuyaux et casiers</span>
+              </div>
+
+              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px]">Filets Fantômes Nylon</span>
+                <span className="text-sm font-black text-rose-600 dark:text-rose-400">
+                  180 FCFA / kg
+                </span>
+                <span className="text-[9px] text-slate-500 block">+ Prime biodiversité marine</span>
+              </div>
+
+              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-400 font-bold block text-[9px]">Aluminium & Métal</span>
+                <span className="text-sm font-black text-amber-600 dark:text-amber-400">
+                  400 FCFA / kg
+                </span>
+                <span className="text-[9px] text-slate-500 block">Fonderies locales de Tié-Tié</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: QUIZ ÉCO-SENTINELLE */}
+      {activeTab === 'quiz' && (
+        <div className="space-y-3">
+          {!quizFinished ? (
+            <div
+              className={`p-3.5 rounded-2xl border space-y-3 ${
+                isFixora
+                  ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
+                  : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              {/* Question progress */}
+              <div className="flex items-center justify-between text-[10.5px]">
+                <span className="font-extrabold text-sky-600 dark:text-sky-400">
+                  Question {currentQuestionIdx + 1} sur {QUIZ_QUESTIONS.length}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                  Objectif : +40 Points Éco-Masseko
+                </span>
+              </div>
+
+              {/* Progress dots */}
+              <div className="flex gap-1.5">
+                {QUIZ_QUESTIONS.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full flex-1 transition-all ${
+                      idx === currentQuestionIdx
+                        ? 'bg-sky-600'
+                        : selectedAnswers[idx] !== undefined
+                        ? 'bg-sky-300 dark:bg-sky-800'
+                        : 'bg-slate-200 dark:bg-slate-700'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Question Text */}
+              <h3 className="font-black text-sm text-slate-900 dark:text-white leading-snug">
+                {QUIZ_QUESTIONS[currentQuestionIdx].question}
+              </h3>
+
+              {/* Options */}
+              <div className="space-y-2">
+                {QUIZ_QUESTIONS[currentQuestionIdx].options.map((option, optIdx) => {
+                  const isChosen = selectedAnswers[currentQuestionIdx] === optIdx;
+                  const hasAnswered = selectedAnswers[currentQuestionIdx] !== undefined;
+                  const isCorrect = option.correct;
+
+                  let btnStyle = isFixora
+                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200';
+
+                  if (hasAnswered) {
+                    if (isCorrect) {
+                      btnStyle = 'bg-sky-100 dark:bg-sky-950 border-sky-500 text-sky-900 dark:text-sky-100 font-black';
+                    } else if (isChosen) {
+                      btnStyle = 'bg-rose-100 dark:bg-rose-950 border-rose-500 text-rose-900 dark:text-rose-100';
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={optIdx}
+                      type="button"
+                      disabled={hasAnswered}
+                      onClick={() => handleSelectAnswer(optIdx)}
+                      className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center justify-between gap-2 cursor-pointer ${btnStyle}`}
+                    >
+                      <span>{option.text}</span>
+                      {hasAnswered && isCorrect && (
+                        <Check className="w-4 h-4 text-sky-600 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Explanation box after answer */}
+              {selectedAnswers[currentQuestionIdx] !== undefined && (
+                <div className="p-2.5 rounded-xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 space-y-1">
+                  <span className="text-[10px] font-black text-sky-800 dark:text-sky-300 block uppercase">
+                    Explication Pédagogique
+                  </span>
+                  <p className="text-[10.5px] text-sky-950 dark:text-sky-100 leading-relaxed">
+                    {QUIZ_QUESTIONS[currentQuestionIdx].explanation}
+                  </p>
+                </div>
+              )}
+
+              {/* Next Question Button */}
+              {selectedAnswers[currentQuestionIdx] !== undefined && (
+                <button
+                  type="button"
+                  onClick={handleNextQuestion}
+                  className="w-full py-2.5 px-3 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm whitespace-nowrap"
+                >
+                  <span className="whitespace-nowrap">
+                    {currentQuestionIdx < QUIZ_QUESTIONS.length - 1
+                      ? 'Question Suivante'
+                      : 'Voir mon Résultat & Certificat'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 shrink-0" />
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Quiz Completed Result Screen */
+            <div
+              className={`p-4 rounded-2xl border text-center space-y-3.5 ${
+                isFixora
+                  ? 'bg-white border-slate-200 text-slate-800 shadow-sm'
+                  : 'bg-slate-900 border-slate-800 text-white'
+              }`}
+            >
+              <div className="w-14 h-14 rounded-3xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto text-amber-500">
+                <Award className="w-8 h-8" />
+              </div>
+
+              <div>
+                <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-widest block">
+                  Évaluation Validée
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                  {scoreCount === QUIZ_QUESTIONS.length
+                    ? 'Félicitations Sentinelle Major !'
+                    : 'Bravo pour votre Engagement !'}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Vous avez obtenu <strong className="text-emerald-600 dark:text-emerald-400 font-black">{scoreCount} / {QUIZ_QUESTIONS.length}</strong> bonnes réponses.
+                </p>
+              </div>
+
+              {/* Diploma Card */}
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-900 to-teal-900 text-white text-left space-y-2 border border-emerald-500/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <TurtleIcon className="w-4 h-4 text-emerald-300" />
+                    <span className="text-[10px] font-black tracking-wider uppercase text-emerald-200">
+                      Certificat Écocitoyen
+                    </span>
+                  </div>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-700/80 text-emerald-100 font-bold">
+                    Pointe-Noire
+                  </span>
+                </div>
+
+                <div className="border-t border-emerald-700/60 pt-2">
+                  <span className="text-[10px] text-emerald-200/80 block">Sentinelle Certifiée :</span>
+                  <span className="text-sm font-black text-white block">
+                    {currentUser ? currentUser.fullName : 'Sentinelle Littorale Anonyme'}
+                  </span>
+                  <span className="text-[9.5px] text-emerald-200/90 block mt-0.5">
+                    Compétences validées : Détection de nids, tri des résines PET/PEHD & alerte Renatura.
+                  </span>
+                </div>
+              </div>
+
+              {/* Claim Points Action */}
+              <div className="space-y-2 pt-1">
+                {!pointsClaimed ? (
+                  <button
+                    type="button"
+                    onClick={handleClaimPoints}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer whitespace-nowrap"
+                  >
+                    <Award className="w-4 h-4 shrink-0" />
+                    <span className="whitespace-nowrap">Réclamer mes +40 Points Éco</span>
+                  </button>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-100 text-xs font-black flex items-center justify-center gap-2 whitespace-nowrap">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="whitespace-nowrap">+40 Points crédités sur votre Pass Éco !</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetQuiz}
+                    className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">Recommencer</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMobileScreen('home')}
+                    className="py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center"
+                  >
+                    <span className="whitespace-nowrap">Retour Accueil</span>
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

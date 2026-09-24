@@ -1,0 +1,6 @@
+{
+  "name": "KOBA - Protection des Tortues Marines & Plages de Pointe-Noire",
+  "description": "Koba signifie Tortue en Lingala. Application mobile de collecte de données et nettoyage des plages de Pointe-Noire pour la sauvegarde des tortues marines.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
