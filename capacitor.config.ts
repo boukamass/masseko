@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.koba.oceanguard',
-  appName: 'KOBA',
-  webDir: 'dist',
+  appId: 'com.masseko.app',
+  appName: 'Masseko',
+  webDir: 'masseko',
   server: {
     androidScheme: 'https',
     cleartext: true

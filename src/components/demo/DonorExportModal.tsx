@@ -37,48 +37,48 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
   const totalNestsProtected = reports.filter(r => r.isNestingZone).length * 4;
 
   const donorTemplates = [
-    { id: 'ffem', name: 'FFEM / AFD - Fonds Français pour l’Environnement Mondial', code: 'FFEM-PN-2026' },
-    { id: 'ue_biodiv', name: 'Union Européenne - Programme Biodiversité & Littoral Congo', code: 'FED-ECO-984' },
-    { id: 'wwf_marine', name: 'WWF Afrique Centrale - Préservation Tortues Marines', code: 'WWF-CONGO-KOB' },
-    { id: 'pnud_gefs', name: 'PNUD / GEF - Gestion Intégrée des Déchets Côtiers', code: 'GEF-7-POINTE-NOIRE' },
+    { id: 'fonds_climat', name: 'Fonds Environnemental & Économie Circulaire Côtière', code: 'ENV-PN-2026' },
+    { id: 'programme_biodiv', name: 'Programme National Biodiversité & Littoral Congo', code: 'BIO-ECO-984' },
+    { id: 'fonds_mer', name: 'Fonds Littoral & Préservation des Tortues Marines', code: 'MASSEKO-CONGO-KOB' },
+    { id: 'gestion_dechets', name: 'Cadre Régional de Gestion Intégrée des Déchets Côtiers', code: 'GESTION-POINTE-NOIRE' },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-blue-700 to-blue-800 text-white p-5 flex items-center justify-between border-b border-blue-600">
+        <div className="bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 text-white p-5 flex items-center justify-between border-b border-teal-600/40">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-white">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-sm tracking-wide text-white">
+              <h3 className="font-semibold text-sm tracking-wide text-white">
                 Rapport d'Audit & Certification Bailleurs
               </h3>
-              <p className="text-[11px] text-blue-100 font-bold">
+              <p className="text-[11px] text-teal-100 font-normal">
                 Génération des fiches de justification certifiées Masseko
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-700 dark:text-slate-300">
+        <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-600 dark:text-slate-300">
           {/* Scientific Notice */}
-          <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-3 flex items-start gap-2.5">
+          <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-3 flex items-start gap-2.5">
             <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div className="text-[11px] leading-relaxed">
-              <span className="font-bold text-emerald-950 dark:text-emerald-200 block mb-0.5">
+              <span className="font-semibold text-emerald-950 dark:text-emerald-200 block mb-0.5">
                 Certification Rigoureuse du Poids Réel
               </span>
-              Seul le tonnage <strong>pesé sur balance homologuée lors de la collecte</strong> est certifié pour les bailleurs internationaux. Les estimations visuelles citoyennes servent exclusivement au dispatching logistique.
+              Seul le tonnage <strong className="font-medium text-emerald-900 dark:text-emerald-300">pesé lors de la collecte</strong> est certifié pour les bailleurs et partenaires. Les estimations visuelles citoyennes servent exclusivement au dispatching logistique.
             </div>
           </div>
 
@@ -102,56 +102,65 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
 
           {/* Aggregated KPI Summary Grid */}
           <div className="grid grid-cols-3 gap-2.5">
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
-              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide block">
                 Poids Certifié
               </span>
-              <span className="font-black text-sm text-emerald-800 dark:text-emerald-300 block mt-0.5">
+              <span className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 block mt-0.5">
                 {totalCertifiedKg.toFixed(1)} kg
               </span>
-              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Balance homologuée</span>
+              <span className="text-[9.5px] text-slate-400 dark:text-slate-500 font-normal">Balance certifiée</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
-              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide block">
                 CO2 Évité
               </span>
-              <span className="font-black text-sm text-blue-800 dark:text-blue-300 block mt-0.5">
+              <span className="font-semibold text-sm text-blue-700 dark:text-blue-400 block mt-0.5">
                 {totalCo2SavedKg} kg
               </span>
-              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Facteur 2.5 kg/kg</span>
+              <span className="text-[9.5px] text-slate-400 dark:text-slate-500 font-normal">Facteur 2.5 kg/kg</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
-              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
-                Nids Protégés
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide block">
+                Nids Sécurisés
               </span>
-              <span className="font-black text-sm text-amber-950 dark:text-amber-100 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-lg border border-amber-300 block mt-0.5">
+              <span className="font-semibold text-sm text-amber-700 dark:text-amber-400 block mt-0.5">
                 {totalNestsProtected} nids
               </span>
-              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Rayon sécurisé</span>
+              <span className="text-[9.5px] text-slate-400 dark:text-slate-500 font-normal">Pointe-Noire</span>
             </div>
           </div>
 
-          {/* Traceability Guarantee Stamp */}
-          <div className="p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between text-[11px]">
-            <div className="flex items-center gap-2">
-              <TurtleIcon className="w-5 h-5 text-emerald-600" />
-              <span className="text-slate-900 dark:text-white">
-                <strong className="font-black">Empreinte Cryptographique :</strong> QR Passport MASSEKO-SHA256
-              </span>
-            </div>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 text-[10px] font-black border border-emerald-300">
-              Conforme ISO 14044
+          {/* Audit Verification List */}
+          <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+            <span className="font-semibold text-xs text-slate-900 dark:text-white block">
+              Garanties & Traçabilité de Terrain :
             </span>
+
+            <div className="space-y-1.5 text-[11px]">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-600 dark:text-slate-300">Horodatage et coordonnées GPS certifiés des dépôts</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-600 dark:text-slate-300">Passeport numérique QR Code rattaché à chaque lot envoyé en usine</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-600 dark:text-slate-300">Protection des nids de pontes (Tortues Luth & Olivâtre)</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Modal Footer Actions */}
-        <div className="p-4 bg-slate-100 dark:bg-slate-800/80 border-t border-slate-300 dark:border-slate-700 flex items-center justify-end gap-2.5">
+        {/* Modal Footer */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-black text-xs hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors font-medium text-xs cursor-pointer"
           >
             Fermer
           </button>
@@ -161,10 +170,10 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
               handleDownloadDonorCSV();
               onClose();
             }}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs flex items-center gap-2 shadow-md transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 text-white" />
-            <span>Télécharger CSV Officiel</span>
+            <Download className="w-4 h-4" />
+            <span>Télécharger Rapport Justificatif (CSV)</span>
           </button>
         </div>
       </div>

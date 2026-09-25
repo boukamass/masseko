@@ -9,12 +9,15 @@ import {
   REAL_IMPACT_CAMPAIGNS,
   MOCK_USERS
 } from './data/mockPointeNoireData';
-import { WasteReport, SyncState, WasteType, WasteVolume, UserProfile } from './types/koba';
+import { WasteReport, SyncState, WasteType, WasteVolume, UserProfile, UserNotification } from './types/koba';
 import { SplashScreen } from './components/SplashScreen';
 import { MobileTopBar } from './components/demo/MobileTopBar';
 import { MobileBottomNav, DemoScreen } from './components/demo/MobileBottomNav';
 import { DonorExportModal } from './components/demo/DonorExportModal';
 import { ProfileModal } from './components/demo/ProfileModal';
+import { ReportSuccessModal } from './components/demo/ReportSuccessModal';
+import { NotificationToast } from './components/demo/NotificationToast';
+import { NotificationsModal } from './components/demo/NotificationsModal';
 
 // Mobile Screens
 import { OnboardingScreen } from './components/demo/screens/OnboardingScreen';
@@ -28,17 +31,68 @@ import { ImpactScreen } from './components/demo/screens/ImpactScreen';
 import { AuthScreen } from './components/demo/screens/AuthScreen';
 import { EducationScreen } from './components/demo/screens/EducationScreen';
 
+const INITIAL_NOTIFICATIONS: UserNotification[] = [
+  {
+    id: 'notif-01',
+    reportId: 'rep-pn-003',
+    type: 'collected',
+    title: 'Déchet Collecté & Pesé !',
+    message: 'Votre signalement de filets fantômes à la Côte Sauvage a été collecté par l\'équipe mobile. Pesée certifiée : 48.5 kg.',
+    locationName: 'Côte Sauvage (Sanctuaire Tortues)',
+    weightKg: 48.5,
+    pointsEarned: 30,
+    timestamp: 'Il y a 2h',
+    isRead: false,
+  },
+  {
+    id: 'notif-02',
+    reportId: 'rep-pn-001',
+    type: 'nest_protected',
+    title: 'Zone de Ponte Sécurisée',
+    message: 'Le secteur de ponte de la Tortue Luth à Songolo a été nettoyé avant la marée haute.',
+    locationName: 'Plage Songolo',
+    pointsEarned: 20,
+    timestamp: 'Hier',
+    isRead: true,
+  },
+];
+
 export default function App() {
   // Mobile Splash & Screen State
   const [showSplashScreen, setShowSplashScreen] = useState<boolean>(true);
   const [mobileScreen, setMobileScreen] = useState<DemoScreen>('home');
-  const [themeMode, setThemeMode] = useState<'forest' | 'fixora'>('fixora');
+  const themeMode: 'fixora' = 'fixora';
+  
+  // Sunlight / Outdoor High-Contrast Readability Mode (WCAG AAA)
+  const [isSunlightMode, setIsSunlightMode] = useState<boolean>(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('masseko_sunlight_mode') === 'true' : false;
+  });
+
+  const toggleSunlightMode = () => {
+    setIsSunlightMode((prev) => {
+      const next = !prev;
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('masseko_sunlight_mode', String(next));
+      }
+      return next;
+    });
+  };
   
   // User Session & Modals State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(MOCK_USERS[0]);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+  const [profileModalTab, setProfileModalTab] = useState<'profile' | 'reports'>('profile');
   const [showDonorExportModal, setShowDonorExportModal] = useState<boolean>(false);
   const [selectedDonorTemplate, setSelectedDonorTemplate] = useState<string>('ffem');
+
+  // Notifications State (System non-intrusive)
+  const [notifications, setNotifications] = useState<UserNotification[]>(INITIAL_NOTIFICATIONS);
+  const [activeToastNotification, setActiveToastNotification] = useState<UserNotification | null>(null);
+  const [showNotificationsModal, setShowNotificationsModal] = useState<boolean>(false);
+
+  // Report Creation & Confirmation Modal State
+  const [showReportSuccessModal, setShowReportSuccessModal] = useState<boolean>(false);
+  const [justCreatedReport, setJustCreatedReport] = useState<WasteReport | null>(null);
 
   // Reports & Network Real-time Detection State
   const [isOnline, setIsOnline] = useState<boolean>(() => {
@@ -82,13 +136,13 @@ export default function App() {
   const [description, setDescription] = useState(
     'Accumulation importante de sacs plastiques transparents dérivant vers la frayère'
   );
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
+  const [realGpsCoords, setRealGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   // Map Filter and Hotspot selection
   const [mapFilter, setMapFilter] = useState<'all' | 'critical' | 'turtle_nest' | 'collected'>('all');
   const [mapSectorFilter, setMapSectorFilter] = useState<string>('all');
   const [selectedMapPoint, setSelectedMapPoint] = useState<WasteReport | null>(mockReports[0]);
-  const [isRangerVerified, setIsRangerVerified] = useState<boolean>(false);
-  const [mapTileMode, setMapTileMode] = useState<'osm_offline' | 'satellite'>('osm_offline');
 
   // Audio / Speech guide state
   const [speechLanguage, setSpeechLanguage] = useState<'french' | 'lingala' | 'kituba'>('french');
@@ -130,7 +184,7 @@ export default function App() {
           : r
       )
     );
-    setReportSuccess('Signalement validé par le modérateur ONG Renatura.');
+    setReportSuccess('Signalement validé par le modérateur Éco-Sentinelle.');
     setTimeout(() => setReportSuccess(null), 3000);
   };
 
@@ -142,8 +196,10 @@ export default function App() {
     setTimeout(() => setReportSuccess(null), 3000);
   };
 
-  // Validation of collection tour
+  // Validation of collection tour - Triggers Reporter Notification
   const handleValidateCollection = (reportId: string) => {
+    let targetReport = reports.find((r) => r.id === reportId);
+    
     setReports((prev) =>
       prev.map((r) => {
         if (r.id === reportId) {
@@ -158,6 +214,29 @@ export default function App() {
         return r;
       })
     );
+
+    // Award bonus points to the citizen for completed collection
+    if (currentUser) {
+      setCurrentUser((prev) => (prev ? { ...prev, points: prev.points + 30 } : null));
+    }
+
+    // Create Notification for the Reporter
+    const collectionNotif: UserNotification = {
+      id: `notif-${Date.now()}`,
+      reportId: reportId,
+      type: 'collected',
+      title: 'Déchet Collecté & Pesé !',
+      message: `Votre signalement à "${targetReport?.locationName.split('(')[0] || 'la plage'}" a été ramassé avec succès par l'équipe mobile. Pesée certifiée : ${weighInput} kg. +30 Éco-Points crédités !`,
+      locationName: targetReport?.locationName,
+      weightKg: weighInput,
+      pointsEarned: 30,
+      timestamp: 'À l\'instant',
+      isRead: false,
+    };
+
+    setNotifications((prev) => [collectionNotif, ...prev]);
+    // Trigger floating, non-intrusive notification toast
+    setActiveToastNotification(collectionNotif);
 
     setWeighSuccess(true);
     setTimeout(() => {
@@ -193,17 +272,30 @@ export default function App() {
         ? 20
         : 3;
 
+    const defaultPhotos: Record<WasteType, string> = {
+      plastic_bag: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
+      plastic_bottle: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
+      fishing_net: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',
+      mixed_plastic: 'https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80',
+      fishing_gear: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+      other: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
+    };
+
+    const selectedSite = POINTE_NOIRE_COASTAL_SITES.find((s) => s.name === locationName);
+    const lat = realGpsCoords?.lat || selectedSite?.latitude || -4.7985;
+    const lng = realGpsCoords?.lng || selectedSite?.longitude || 11.8290;
+    const finalPhoto = capturedPhotoUrl || defaultPhotos[wasteType] || defaultPhotos.plastic_bottle;
+
     const newReport: WasteReport = {
       id: `rep-pn-00${reports.length + 1}`,
-      authorId: currentUser?.id || 'guest-pn-demo',
+      authorId: currentUser?.id || 'user-001',
       locationName,
-      latitude: -4.792,
-      longitude: 11.831,
+      latitude: lat,
+      longitude: lng,
       wasteType,
       estimatedVolume,
       estimatedWeightKg: backendIndicativeKg,
-      photoUrl:
-        'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
+      photoUrl: finalPhoto,
       description,
       status: 'reported',
       priorityScore: finalScore,
@@ -215,18 +307,35 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
+    // Add report to list and credit user +20 points
     setReports([newReport, ...reports]);
+    if (currentUser) {
+      setCurrentUser((prev) => (prev ? { ...prev, points: prev.points + 20 } : null));
+    }
     setSelectedMapPoint(newReport);
-    setReportSuccess(
-      isOnline
-        ? 'Signalement synchronisé avec succès !'
-        : 'Signalement enregistré sur le téléphone (Mode Hors-Ligne) !'
-    );
-    setTimeout(() => {
-      setReportSuccess(null);
-      setReportStep(1);
-      setMobileScreen('map');
-    }, 1800);
+    setJustCreatedReport(newReport);
+
+    // Create Notification for the Reporter
+    const reportCreatedNotif: UserNotification = {
+      id: `notif-${Date.now()}`,
+      reportId: newReport.id,
+      type: 'reported',
+      title: 'Signalement Transmis',
+      message: `Votre signalement à "${locationName}" a bien été pris en compte (+20 Éco-Points). L'équipe de collecte a été alertée.`,
+      locationName,
+      pointsEarned: 20,
+      timestamp: 'À l\'instant',
+      isRead: false,
+    };
+    setNotifications((prev) => [reportCreatedNotif, ...prev]);
+
+    // Reset report creation inputs
+    setReportStep(1);
+    setCapturedPhotoUrl(null);
+    setRealGpsCoords(null);
+
+    // Open clean Confirmation Modal
+    setShowReportSuccessModal(true);
   };
 
   const syncPendingReports = () => {
@@ -258,6 +367,18 @@ export default function App() {
   };
 
   const pendingCount = reports.filter((r) => r.syncState === 'pending').length;
+  const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleOpenReportFromNotification = (reportId?: string) => {
+    if (reportId) {
+      const target = reports.find((r) => r.id === reportId);
+      if (target) {
+        setSelectedMapPoint(target);
+      }
+    }
+    setProfileModalTab('reports');
+    setShowProfileModal(true);
+  };
 
   // Render Splash Screen directly at root level so it is 100% full-screen without any frame or rounded border
   if (showSplashScreen) {
@@ -265,197 +386,244 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen flex justify-center text-slate-950 font-sans selection:bg-blue-600 selection:text-white transition-colors ${
-      themeMode === 'fixora' ? 'bg-[#E5E5EA]' : 'bg-[#000000]'
-    }`}>
+    <div className={`min-h-screen flex justify-center text-slate-950 font-sans selection:bg-teal-600 selection:text-white transition-colors bg-[#CBD5E1] ${isSunlightMode ? 'sunlight-mode' : ''}`}>
       {/* Mobile App Standalone Frame (100% full screen on mobile, max-w-md on desktop) */}
-      <div
-        className={`w-full min-h-screen sm:max-w-md flex flex-col justify-between overflow-hidden relative isolate sm:shadow-2xl transition-colors sm:border-x ${
-          themeMode === 'fixora'
-            ? 'bg-[#F2F2F7] sm:border-slate-300 text-slate-950'
-            : 'bg-[#000000] sm:border-slate-800 text-white'
-        }`}
-      >
-        {/* Top Bar (Status bar, network, theme toggle, user profile, PWA install) */}
+      <div className={`w-full min-h-screen sm:max-w-md flex flex-col justify-between overflow-hidden relative isolate sm:shadow-2xl transition-colors sm:border-x sm:border-slate-400 text-slate-950 ${isSunlightMode ? 'bg-white' : 'bg-[#F8FAFC]'}`}>
+        {/* Top Bar (Status bar, network, notifications, user profile) */}
         <MobileTopBar
           isOnline={isOnline}
           setIsOnline={setIsOnline}
           syncPendingReports={syncPendingReports}
-          themeMode={themeMode}
-          setThemeMode={setThemeMode}
           pendingSyncCount={pendingCount}
           currentUser={currentUser}
-          onOpenProfile={() => setShowProfileModal(true)}
+          onOpenProfile={() => {
+            setProfileModalTab('profile');
+            setShowProfileModal(true);
+          }}
           onOpenAuth={() => setMobileScreen('auth')}
           onOpenEducation={() => setMobileScreen('education')}
+          unreadNotificationsCount={unreadNotificationsCount}
+          onOpenNotifications={() => setShowNotificationsModal(true)}
+          isSunlightMode={isSunlightMode}
+          onToggleSunlightMode={toggleSunlightMode}
         />
 
-            {/* Scrollable Main Viewport for Active Screen */}
-            <div className="flex-1 overflow-y-auto px-3.5 py-2.5 scrollbar-thin">
-              {mobileScreen === 'onboarding' && (
-                <OnboardingScreen
-                  setMobileScreen={setMobileScreen}
-                  themeMode={themeMode}
-                />
-              )}
+        {/* Floating Non-Intrusive Notification Toast (Dynamic Island style) */}
+        <NotificationToast
+          notification={activeToastNotification}
+          onDismiss={() => setActiveToastNotification(null)}
+          onViewReport={(repId) => handleOpenReportFromNotification(repId)}
+        />
 
-              {mobileScreen === 'auth' && (
-                <AuthScreen
-                  currentUser={currentUser}
-                  onLogin={(u) => {
-                    setCurrentUser(u);
-                  }}
-                  onRegister={(newUser) => {
-                    setCurrentUser(newUser);
-                  }}
-                  setMobileScreen={setMobileScreen}
-                  themeMode={themeMode}
-                />
-              )}
-
-              {mobileScreen === 'education' && (
-                <EducationScreen
-                  setMobileScreen={setMobileScreen}
-                  themeMode={themeMode}
-                  currentUser={currentUser}
-                  onAwardPoints={(points) => {
-                    if (currentUser) {
-                      setCurrentUser((prev) =>
-                        prev ? { ...prev, points: prev.points + points } : null
-                      );
-                    }
-                  }}
-                  triggerAudioGuidance={triggerAudioGuidance}
-                />
-              )}
-
-              {mobileScreen === 'home' && (
-                <HomeScreen
-                  reports={reports}
-                  setMobileScreen={setMobileScreen}
-                  setSelectedMapPoint={setSelectedMapPoint}
-                  themeMode={themeMode}
-                  isOnline={isOnline}
-                  currentUser={currentUser}
-                  onOpenProfile={() => setShowProfileModal(true)}
-                />
-              )}
-
-              {mobileScreen === 'map' && (
-                <MapScreen
-                  reports={reports}
-                  selectedMapPoint={selectedMapPoint}
-                  setSelectedMapPoint={setSelectedMapPoint}
-                  mapFilter={mapFilter}
-                  setMapFilter={setMapFilter}
-                  mapSectorFilter={mapSectorFilter}
-                  setMapSectorFilter={setMapSectorFilter}
-                  isRangerVerified={isRangerVerified}
-                  setIsRangerVerified={setIsRangerVerified}
-                  mapTileMode={mapTileMode}
-                  setMapTileMode={setMapTileMode}
-                  themeMode={themeMode}
-                  setMobileScreen={setMobileScreen}
-                  handleApproveReport={handleApproveReport}
-                  handleRejectReport={handleRejectReport}
-                />
-              )}
-
-              {mobileScreen === 'report' && (
-                <ReportScreen
-                  reportStep={reportStep}
-                  setReportStep={setReportStep}
-                  locationName={locationName}
-                  setLocationName={setLocationName}
-                  wasteType={wasteType}
-                  setWasteType={setWasteType}
-                  estimatedVolume={estimatedVolume}
-                  setEstimatedVolume={setEstimatedVolume}
-                  isNestingZone={isNestingZone}
-                  setIsNestingZone={setIsNestingZone}
-                  turtleDangerLevelText={turtleDangerLevelText}
-                  setTurtleDangerLevelText={setTurtleDangerLevelText}
-                  description={description}
-                  setDescription={setDescription}
-                  handleCreateReport={handleCreateReport}
-                  calculateDynamicScore={calculateDynamicScore}
-                  themeMode={themeMode}
-                  speechLanguage={speechLanguage}
-                  setSpeechLanguage={setSpeechLanguage}
-                  triggerAudioGuidance={triggerAudioGuidance}
-                  activeSpeechText={activeSpeechText}
-                  reportSuccess={reportSuccess}
-                  setMobileScreen={setMobileScreen}
-                />
-              )}
-
-              {mobileScreen === 'scan' && (
-                <ScanScreen
-                  scanScreenMode={scanScreenMode}
-                  setScanScreenMode={setScanScreenMode}
-                  setMobileScreen={setMobileScreen}
-                  setScannedLotId={setScannedLotId}
-                  themeMode={themeMode}
-                />
-              )}
-
-              {mobileScreen === 'tour' && (
-                <TourScreen
-                  selectedTourId={selectedTourId}
-                  setSelectedTourId={setSelectedTourId}
-                  reports={reports}
-                  selectedReportToCollect={selectedReportToCollect}
-                  setSelectedReportToCollect={setSelectedReportToCollect}
-                  weighInput={weighInput}
-                  setWeighInput={setWeighInput}
-                  handleValidateCollection={handleValidateCollection}
-                  weighSuccess={weighSuccess}
-                  isRouteOptimized={isRouteOptimized}
-                  setIsRouteOptimized={setIsRouteOptimized}
-                  themeMode={themeMode}
-                  setMobileScreen={setMobileScreen}
-                />
-              )}
-
-              {mobileScreen === 'lot' && (
-                <LotScreen
-                  scannedLotId={scannedLotId}
-                  selectedRecyclerId={selectedRecyclerId}
-                  setSelectedRecyclerId={setSelectedRecyclerId}
-                  themeMode={themeMode}
-                  setMobileScreen={setMobileScreen}
-                />
-              )}
-
-              {mobileScreen === 'impact' && (
-                <ImpactScreen
-                  selectedCampaignId={selectedCampaignId}
-                  setSelectedCampaignId={setSelectedCampaignId}
-                  reports={reports}
-                  themeMode={themeMode}
-                  setShowDonorExportModal={setShowDonorExportModal}
-                  handleDownloadDonorCSV={handleDownloadDonorCSV}
-                  setMobileScreen={setMobileScreen}
-                />
-              )}
-            </div>
-
-            {/* Standard 5-Tab Mobile Navigation Bar */}
-            <MobileBottomNav
-              mobileScreen={mobileScreen}
+        {/* Scrollable Main Viewport for Active Screen */}
+        <div className="flex-1 overflow-y-auto px-3.5 py-2.5 scrollbar-thin">
+          {mobileScreen === 'onboarding' && (
+            <OnboardingScreen
               setMobileScreen={setMobileScreen}
               themeMode={themeMode}
             />
+          )}
+
+          {mobileScreen === 'auth' && (
+            <AuthScreen
+              currentUser={currentUser}
+              onLogin={(u) => {
+                setCurrentUser(u);
+              }}
+              onRegister={(newUser) => {
+                setCurrentUser(newUser);
+              }}
+              setMobileScreen={setMobileScreen}
+              themeMode={themeMode}
+            />
+          )}
+
+          {mobileScreen === 'education' && (
+            <EducationScreen
+              setMobileScreen={setMobileScreen}
+              themeMode={themeMode}
+              currentUser={currentUser}
+              onAwardPoints={(points) => {
+                if (currentUser) {
+                  setCurrentUser((prev) =>
+                    prev ? { ...prev, points: prev.points + points } : null
+                  );
+                }
+              }}
+              triggerAudioGuidance={triggerAudioGuidance}
+            />
+          )}
+
+          {mobileScreen === 'home' && (
+            <HomeScreen
+              reports={reports}
+              setMobileScreen={setMobileScreen}
+              setSelectedMapPoint={setSelectedMapPoint}
+              themeMode={themeMode}
+              isOnline={isOnline}
+              currentUser={currentUser}
+              onOpenProfile={() => {
+                setProfileModalTab('profile');
+                setShowProfileModal(true);
+              }}
+              onOpenMyReports={() => {
+                setProfileModalTab('reports');
+                setShowProfileModal(true);
+              }}
+            />
+          )}
+
+          {mobileScreen === 'map' && (
+            <MapScreen
+              reports={reports}
+              selectedMapPoint={selectedMapPoint}
+              setSelectedMapPoint={setSelectedMapPoint}
+              setSelectedReportToCollect={setSelectedReportToCollect}
+              setWeighInput={setWeighInput}
+              mapFilter={mapFilter}
+              setMapFilter={setMapFilter}
+              mapSectorFilter={mapSectorFilter}
+              setMapSectorFilter={setMapSectorFilter}
+              themeMode={themeMode}
+              setMobileScreen={setMobileScreen}
+              handleApproveReport={handleApproveReport}
+              handleRejectReport={handleRejectReport}
+            />
+          )}
+
+          {mobileScreen === 'report' && (
+            <ReportScreen
+              reportStep={reportStep}
+              setReportStep={setReportStep}
+              locationName={locationName}
+              setLocationName={setLocationName}
+              wasteType={wasteType}
+              setWasteType={setWasteType}
+              estimatedVolume={estimatedVolume}
+              setEstimatedVolume={setEstimatedVolume}
+              isNestingZone={isNestingZone}
+              setIsNestingZone={setIsNestingZone}
+              turtleDangerLevelText={turtleDangerLevelText}
+              setTurtleDangerLevelText={setTurtleDangerLevelText}
+              description={description}
+              setDescription={setDescription}
+              capturedPhotoUrl={capturedPhotoUrl}
+              setCapturedPhotoUrl={setCapturedPhotoUrl}
+              realGpsCoords={realGpsCoords}
+              setRealGpsCoords={setRealGpsCoords}
+              handleCreateReport={handleCreateReport}
+              calculateDynamicScore={calculateDynamicScore}
+              themeMode={themeMode}
+              speechLanguage={speechLanguage}
+              setSpeechLanguage={setSpeechLanguage}
+              triggerAudioGuidance={triggerAudioGuidance}
+              activeSpeechText={activeSpeechText}
+              reportSuccess={reportSuccess}
+              setMobileScreen={setMobileScreen}
+            />
+          )}
+
+          {mobileScreen === 'scan' && (
+            <ScanScreen
+              scanScreenMode={scanScreenMode}
+              setScanScreenMode={setScanScreenMode}
+              setMobileScreen={setMobileScreen}
+              setScannedLotId={setScannedLotId}
+              themeMode={themeMode}
+            />
+          )}
+
+          {mobileScreen === 'tour' && (
+            <TourScreen
+              selectedTourId={selectedTourId}
+              setSelectedTourId={setSelectedTourId}
+              reports={reports}
+              selectedReportToCollect={selectedReportToCollect}
+              setSelectedReportToCollect={setSelectedReportToCollect}
+              setSelectedMapPoint={setSelectedMapPoint}
+              weighInput={weighInput}
+              setWeighInput={setWeighInput}
+              handleValidateCollection={handleValidateCollection}
+              weighSuccess={weighSuccess}
+              isRouteOptimized={isRouteOptimized}
+              setIsRouteOptimized={setIsRouteOptimized}
+              themeMode={themeMode}
+              setMobileScreen={setMobileScreen}
+            />
+          )}
+
+          {mobileScreen === 'lot' && (
+            <LotScreen
+              scannedLotId={scannedLotId}
+              selectedRecyclerId={selectedRecyclerId}
+              setSelectedRecyclerId={setSelectedRecyclerId}
+              themeMode={themeMode}
+              setMobileScreen={setMobileScreen}
+            />
+          )}
+
+          {mobileScreen === 'impact' && (
+            <ImpactScreen
+              selectedCampaignId={selectedCampaignId}
+              setSelectedCampaignId={setSelectedCampaignId}
+              reports={reports}
+              themeMode={themeMode}
+              setShowDonorExportModal={setShowDonorExportModal}
+              handleDownloadDonorCSV={handleDownloadDonorCSV}
+              setMobileScreen={setMobileScreen}
+            />
+          )}
+        </div>
+
+        {/* Standard 5-Tab Mobile Navigation Bar */}
+        <MobileBottomNav
+          mobileScreen={mobileScreen}
+          setMobileScreen={setMobileScreen}
+          themeMode={themeMode}
+        />
       </div>
 
-      {/* User Profile & Persona Switcher Modal */}
+      {/* User Profile & My Reports Modal */}
       <ProfileModal
         currentUser={currentUser}
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         onLogout={() => setCurrentUser(null)}
-        onSwitchUser={(newUser) => setCurrentUser(newUser)}
         setMobileScreen={setMobileScreen}
+        themeMode={themeMode}
+        userReports={reports}
+        setSelectedMapPoint={setSelectedMapPoint}
+        initialTab={profileModalTab}
+      />
+
+      {/* Instant Signalement Confirmation Modal */}
+      <ReportSuccessModal
+        report={justCreatedReport}
+        isOpen={showReportSuccessModal}
+        onClose={() => setShowReportSuccessModal(false)}
+        onViewOnMap={() => {
+          setShowReportSuccessModal(false);
+          setMobileScreen('map');
+        }}
+        onViewMyReports={() => {
+          setShowReportSuccessModal(false);
+          setProfileModalTab('reports');
+          setShowProfileModal(true);
+        }}
+        themeMode={themeMode}
+        isOnline={isOnline}
+      />
+
+      {/* Notifications Drawer Modal */}
+      <NotificationsModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
+        notifications={notifications}
+        onMarkAllAsRead={() => {
+          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        }}
+        onClearAll={() => setNotifications([])}
+        onSelectNotification={(reportId) => handleOpenReportFromNotification(reportId)}
         themeMode={themeMode}
       />
 

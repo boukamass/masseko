@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { 
   Camera, 
   MapPin, 
@@ -11,8 +11,10 @@ import {
   Layers,
   ShieldAlert,
   Navigation,
-  Upload,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Radio,
+  Crosshair
 } from 'lucide-react';
 import { 
   POINTE_NOIRE_COASTAL_SITES, 
@@ -38,6 +40,10 @@ interface ReportScreenProps {
   setTurtleDangerLevelText: (level: string) => void;
   description: string;
   setDescription: (desc: string) => void;
+  capturedPhotoUrl: string | null;
+  setCapturedPhotoUrl: (url: string | null) => void;
+  realGpsCoords: { lat: number; lng: number } | null;
+  setRealGpsCoords: (coords: { lat: number; lng: number } | null) => void;
   handleCreateReport: (e: React.FormEvent) => void;
   calculateDynamicScore: () => number;
   themeMode: 'forest' | 'fixora';
@@ -48,6 +54,15 @@ interface ReportScreenProps {
   reportSuccess: string | null;
   setMobileScreen: (screen: DemoScreen) => void;
 }
+
+const DEFAULT_PREVIEWS: Record<WasteType, string> = {
+  plastic_bag: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
+  plastic_bottle: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
+  fishing_net: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',
+  mixed_plastic: 'https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80',
+  fishing_gear: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+  other: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80',
+};
 
 export const ReportScreen: React.FC<ReportScreenProps> = ({
   reportStep,
@@ -64,6 +79,10 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   setTurtleDangerLevelText,
   description,
   setDescription,
+  capturedPhotoUrl,
+  setCapturedPhotoUrl,
+  realGpsCoords,
+  setRealGpsCoords,
   handleCreateReport,
   calculateDynamicScore,
   themeMode,
@@ -77,45 +96,99 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   const isFixora = themeMode === 'fixora';
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Real Camera & Real GPS state
-  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
-  const [realGpsCoords, setRealGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isLocatingGPS, setIsLocatingGPS] = useState<boolean>(false);
+  const [gpsStatus, setGpsStatus] = useState<'active' | 'inactive' | 'denied' | 'unsupported'>('inactive');
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const [gpsStatusMessage, setGpsStatusMessage] = useState<string | null>(null);
 
+  // Proactive GPS & Geolocation permission detection
+  useEffect(() => {
+    if (realGpsCoords) {
+      setGpsStatus('active');
+      return;
+    }
+
+    if (typeof navigator !== 'undefined' && 'permissions' in navigator && navigator.permissions?.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+        if (permission.state === 'granted') {
+          handleGetRealGPS(true);
+        } else if (permission.state === 'denied') {
+          setGpsStatus('denied');
+          setGpsStatusMessage('Localisation désactivée ou refusée par le navigateur.');
+        } else {
+          setGpsStatus('inactive');
+          setGpsStatusMessage('GPS en attente : activez la géolocalisation pour certifier les coordonnées.');
+        }
+
+        permission.onchange = () => {
+          if (permission.state === 'granted') {
+            handleGetRealGPS(true);
+          } else if (permission.state === 'denied') {
+            setGpsStatus('denied');
+          }
+        };
+      }).catch(() => {
+        setGpsStatus('inactive');
+      });
+    } else if (typeof navigator !== 'undefined' && !navigator.geolocation) {
+      setGpsStatus('unsupported');
+      setGpsStatusMessage("La géolocalisation n'est pas supportée par votre navigateur.");
+    }
+  }, [realGpsCoords]);
+
+  // Native Camera / File Capture Handlers
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCapturedPhotoUrl(reader.result as string);
+        if (typeof reader.result === 'string') {
+          setCapturedPhotoUrl(reader.result);
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleGetRealGPS = () => {
+  const handleGetRealGPS = (silent = false) => {
     if (!navigator.geolocation) {
-      setGpsStatusMessage("Géolocalisation non supportée par ce navigateur.");
+      setGpsStatus('unsupported');
+      setGpsStatusMessage("La géolocalisation n'est pas supportée.");
       return;
     }
 
     setIsLocatingGPS(true);
-    setGpsStatusMessage("Recherche du signal GPS en cours...");
+    if (!silent) setGpsStatusMessage("Acquisition des satellites GPS en cours...");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setIsLocatingGPS(false);
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
         setRealGpsCoords({ lat: latitude, lng: longitude });
-        setGpsStatusMessage(`GPS Fixé : ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        setGpsAccuracy(Math.round(accuracy));
+        setGpsStatus('active');
+        setGpsStatusMessage(`GPS Fixé : ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)}m)`);
       },
       (error) => {
         setIsLocatingGPS(false);
-        setGpsStatusMessage("Signal GPS approximatif (Côte Pointe-Noire activée).");
+        if (error.code === error.PERMISSION_DENIED) {
+          setGpsStatus('denied');
+          setGpsStatusMessage("Accès GPS refusé : activez la localisation dans les réglages.");
+        } else {
+          setGpsStatus('inactive');
+          setGpsStatusMessage("Signal GPS indisponible : utilisation du secteur de plage sélectionné.");
+        }
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 9000, maximumAge: 30000 }
     );
+  };
+
+  const handleTakePhotoClick = () => {
+    // Proactively acquire GPS if not yet active
+    if (gpsStatus !== 'active') {
+      handleGetRealGPS(true);
+    }
+    fileInputRef.current?.click();
   };
 
   const stepTitles = [
@@ -140,22 +213,24 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
     { id: 'very_large', label: 'Très Grand', range: '>100 kg', desc: 'Amas important (Camion requis)' },
   ];
 
+  const currentPreview = capturedPhotoUrl || DEFAULT_PREVIEWS[wasteType] || DEFAULT_PREVIEWS.plastic_bottle;
+
   return (
     <div className="space-y-3 pb-3">
       {/* 1. Header with Compact Stepper & Audio Shortcut */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#0052CC] dark:bg-sky-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
+            <span className="w-6 h-6 rounded-full bg-gradient-to-tr from-teal-600 to-emerald-600 text-white font-semibold text-xs flex items-center justify-center shadow-xs">
               {reportStep}
             </span>
-            <h3 className="font-black text-base text-slate-950 dark:text-white">
+            <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">
               {stepTitles[reportStep - 1]}
             </h3>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Minimalist Audio Guide */}
+            {/* Audio Guide */}
             <button
               type="button"
               onClick={() =>
@@ -165,14 +240,14 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                   "Bika foto ya mbote mpe tubila bisika nge kele na masa."
                 )
               }
-              className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-slate-800 text-sky-800 dark:text-sky-300 hover:bg-sky-200 transition-colors cursor-pointer flex items-center justify-center border border-sky-300 dark:border-slate-700"
+              className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-slate-800 text-teal-700 dark:text-teal-300 hover:bg-teal-100 transition-colors cursor-pointer flex items-center justify-center border border-teal-200 dark:border-slate-700"
               title="Écouter le guide vocal"
             >
               <Volume2 className="w-4 h-4" />
             </button>
 
             {/* Language Switch */}
-            <div className="flex items-center bg-slate-200 dark:bg-slate-800 rounded-xl p-1 text-[10px] font-black border border-slate-300 dark:border-slate-700">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 text-xs font-medium border border-slate-200 dark:border-slate-700">
               {(['french', 'lingala', 'kituba'] as const).map((lang) => (
                 <button
                   key={lang}
@@ -180,8 +255,8 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                   onClick={() => setSpeechLanguage(lang)}
                   className={`px-2 py-1 rounded-lg uppercase transition-all ${
                     speechLanguage === lang
-                      ? 'bg-[#0052CC] text-white font-black shadow-xs'
-                      : 'text-slate-900 hover:text-black dark:text-slate-200 dark:hover:text-white font-black'
+                      ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-medium shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white font-normal'
                   }`}
                 >
                   {lang === 'french' ? 'FR' : lang === 'lingala' ? 'LN' : 'KT'}
@@ -189,30 +264,30 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               ))}
             </div>
 
-            <span className="text-xs font-black text-slate-950 dark:text-white pl-1">
+            <span className="text-xs font-normal text-slate-500 dark:text-slate-400 pl-1">
               {reportStep}/5
             </span>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-slate-300 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
           <div
-            className="bg-emerald-600 dark:bg-emerald-400 h-full transition-all duration-300 rounded-full"
+            className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300 rounded-full"
             style={{ width: `${(reportStep / 5) * 100}%` }}
           />
         </div>
 
         {/* Spoken feedback banner if any */}
         {activeSpeechText && (
-          <div className="p-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 animate-in fade-in shadow-xs">
+          <div className="p-2.5 rounded-xl bg-teal-700 text-white text-xs font-normal flex items-center gap-2 animate-in fade-in shadow-xs">
             <Volume2 className="w-4 h-4 shrink-0" />
             <span className="truncate">"{activeSpeechText}"</span>
           </div>
         )}
 
         {reportSuccess && (
-          <div className="p-3 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-black flex items-center gap-2 animate-in fade-in shadow-md">
+          <div className="p-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in shadow-md">
             <CheckCircle2 className="w-5 h-5 shrink-0" />
             <span>{reportSuccess}</span>
           </div>
@@ -234,58 +309,121 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               className="hidden"
             />
 
-            <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-900 border-2 border-emerald-500/40 flex items-center justify-center text-white group shadow-sm">
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 flex items-center justify-center text-white group shadow-sm">
               <img
-                src={
-                  capturedPhotoUrl ||
-                  "https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80"
-                }
+                src={currentPreview}
                 alt="Captured Waste"
-                className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform group-hover:scale-105"
+                className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform group-hover:scale-102"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-3.5 gap-2">
+              {/* Live Geotag Watermark Badge on Photo */}
+              <div className="absolute top-2.5 right-2.5 z-10 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/20 text-right shadow-md">
+                <div className="flex items-center gap-1.5 justify-end text-[10.5px] font-semibold text-white">
+                  <span className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>{gpsStatus === 'active' ? 'Photo Géolocalisée' : 'Secteur Déclaratif'}</span>
+                </div>
+                <span className="text-[9.5px] text-teal-200 font-mono block">
+                  {realGpsCoords 
+                    ? `${realGpsCoords.lat.toFixed(4)}, ${realGpsCoords.lng.toFixed(4)}`
+                    : locationName.split('(')[0].trim()}
+                </span>
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent flex flex-col justify-end p-3 gap-2">
                 <div className="flex items-center justify-between">
-                  <div className="bg-black/85 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 backdrop-blur-xs text-white border border-white/20">
-                    <Camera className="w-4 h-4 text-emerald-400" />
-                    <span>{capturedPhotoUrl ? 'Photo Réelle Capturée' : 'Aperçu Déchet Littoral'}</span>
+                  <div className="bg-black/70 px-2.5 py-1 rounded-xl text-xs font-normal flex items-center gap-1.5 backdrop-blur-xs text-white border border-white/20">
+                    <Camera className="w-3.5 h-3.5 text-teal-400" />
+                    <span>{capturedPhotoUrl ? 'Photo Réelle Chargée' : 'Aperçu Photo'}</span>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+                    onClick={handleTakePhotoClick}
+                    className="h-9 px-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium text-xs shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
                   >
-                    <Camera className="w-4 h-4 shrink-0" />
-                    <span>Ouvrir Caméra</span>
+                    <Camera className="w-3.5 h-3.5 shrink-0" />
+                    <span>{capturedPhotoUrl ? 'Reprendre Photo' : 'Prendre Photo'}</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Live GPS Locator Button */}
-            <div className="p-3.5 rounded-2xl bg-white dark:bg-[#161618] border border-slate-300 dark:border-slate-700 space-y-2 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Navigation className={`w-4 h-4 text-emerald-600 dark:text-emerald-400 ${isLocatingGPS ? 'animate-spin' : ''}`} />
-                  <span className="font-black text-xs sm:text-sm text-slate-950 dark:text-white">
-                    Position GPS Réelle
-                  </span>
+            {/* Smart GPS Detection & Status Card */}
+            <div className={`p-3 rounded-2xl border transition-all shadow-xs ${
+              gpsStatus === 'active'
+                ? 'bg-emerald-50/80 border-emerald-300 text-slate-900'
+                : gpsStatus === 'denied'
+                ? 'bg-amber-50/90 border-amber-300 text-slate-900'
+                : 'bg-white border-slate-200 text-slate-900'
+            }`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+                    gpsStatus === 'active'
+                      ? 'bg-emerald-600 text-white'
+                      : gpsStatus === 'denied'
+                      ? 'bg-amber-500 text-slate-950'
+                      : 'bg-teal-600 text-white'
+                  }`}>
+                    {isLocatingGPS ? (
+                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    ) : gpsStatus === 'active' ? (
+                      <Navigation className="w-4 h-4 text-white" />
+                    ) : gpsStatus === 'denied' ? (
+                      <AlertTriangle className="w-4 h-4 text-slate-950" />
+                    ) : (
+                      <Radio className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-xs truncate block">
+                        {gpsStatus === 'active' 
+                          ? 'Signal GPS Verrouillé' 
+                          : gpsStatus === 'denied'
+                          ? 'Localisation GPS Non Autorisée'
+                          : 'Détection GPS Disponible'}
+                      </span>
+                      {gpsStatus === 'active' && (
+                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 border border-emerald-300 px-1.5 py-0.2 rounded-md">
+                          Certifié
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-normal block truncate">
+                      {gpsStatus === 'active' && realGpsCoords
+                        ? `${realGpsCoords.lat.toFixed(5)}°, ${realGpsCoords.lng.toFixed(5)}° (±${gpsAccuracy || 4}m)`
+                        : gpsStatus === 'denied'
+                        ? 'Activez le GPS dans les réglages du smartphone'
+                        : 'Recommandé pour certifier l\'emplacement du nid'}
+                    </span>
+                  </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={handleGetRealGPS}
+                  onClick={() => handleGetRealGPS(false)}
                   disabled={isLocatingGPS}
-                  className="h-9 px-3 rounded-xl bg-[#0052CC] text-white font-black text-xs hover:bg-[#00388A] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className={`h-8 px-3 rounded-xl font-medium text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0 active:scale-95 ${
+                    gpsStatus === 'active'
+                      ? 'bg-white hover:bg-slate-50 text-emerald-700 border border-emerald-300'
+                      : 'bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white'
+                  }`}
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isLocatingGPS ? 'animate-spin' : ''}`} />
-                  <span>Actualiser GPS</span>
+                  <span>{gpsStatus === 'active' ? 'Actualiser' : 'Activer GPS'}</span>
                 </button>
               </div>
 
               {gpsStatusMessage && (
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold">
+                <p className={`text-[11px] font-mono mt-1.5 pt-1.5 border-t ${
+                  gpsStatus === 'active' 
+                    ? 'text-emerald-800 border-emerald-200' 
+                    : gpsStatus === 'denied'
+                    ? 'text-amber-800 border-amber-200'
+                    : 'text-slate-600 border-slate-100'
+                }`}>
                   {gpsStatusMessage}
                 </p>
               )}
@@ -297,7 +435,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               onChange={(val) => setLocationName(val)}
               themeMode={themeMode}
               searchable={true}
-              icon={<MapPin className="w-4 h-4 text-emerald-600" />}
+              icon={<MapPin className="w-4 h-4 text-teal-600" />}
               options={POINTE_NOIRE_COASTAL_SITES.map((site) => ({
                 value: site.name,
                 label: site.name,
@@ -314,7 +452,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
             <button
               type="button"
               onClick={() => setReportStep(2)}
-              className="w-full h-12 px-4 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+              className="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
             >
               <span className="whitespace-nowrap">Suivant : Type de Déchet</span>
               <ArrowRight className="w-4 h-4 shrink-0" />
@@ -325,11 +463,11 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
         {/* ================= STEP 2: WASTE TYPE ================= */}
         {reportStep === 2 && (
           <div className="space-y-3 animate-in fade-in">
-            <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider block truncate">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block truncate">
               Matière Dominante
             </span>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2">
               {wasteTypesList.map((item) => {
                 const Icon = item.icon;
                 const isSelected = wasteType === item.id;
@@ -339,28 +477,28 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                     key={item.id}
                     type="button"
                     onClick={() => setWasteType(item.id)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[96px] cursor-pointer ${
+                    className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[90px] cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50 dark:bg-blue-950/70 border-blue-600 ring-2 ring-blue-500/30 shadow-xs'
+                        ? 'bg-teal-50/90 dark:bg-teal-950/50 border-teal-600 ring-2 ring-teal-500/20 shadow-xs'
                         : isFixora
-                        ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 shadow-xs'
-                        : 'bg-[#161618] hover:bg-slate-800 border-slate-700 text-white shadow-xs'
+                        ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
+                        : 'bg-[#161618] hover:bg-slate-800 border-slate-800 text-white shadow-xs'
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
-                        isSelected ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-950 dark:text-white'
+                      <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                        isSelected ? 'bg-gradient-to-tr from-teal-600 to-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                       }`}>
-                        <Icon className="w-4.5 h-4.5" />
+                        <Icon className="w-4 h-4" />
                       </div>
-                      {isSelected && <CheckCircle2 className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400 shrink-0 font-black" />}
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 font-semibold" />}
                     </div>
 
                     <div className="mt-2 min-w-0">
-                      <span className="font-black text-xs sm:text-sm text-slate-950 dark:text-white block leading-tight truncate">
+                      <span className="font-semibold text-xs text-slate-900 dark:text-white block leading-tight truncate">
                         {item.label}
                       </span>
-                      <span className="text-[11px] text-slate-800 dark:text-slate-200 font-bold block mt-0.5 truncate">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5 truncate">
                         {item.desc}
                       </span>
                     </div>
@@ -373,14 +511,14 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setReportStep(1)}
-                className="w-1/3 h-12 px-3 rounded-xl border border-slate-300 dark:border-slate-700 font-black text-xs sm:text-sm text-slate-900 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
+                className="w-1/3 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 font-medium text-xs text-slate-700 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
               >
                 Retour
               </button>
               <button
                 type="button"
                 onClick={() => setReportStep(3)}
-                className="w-2/3 h-12 px-4 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="w-2/3 h-11 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
                 <span className="whitespace-nowrap">Suivant : Gabarit</span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
@@ -392,7 +530,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
         {/* ================= STEP 3: VOLUME ESTIMATION ================= */}
         {reportStep === 3 && (
           <div className="space-y-3 animate-in fade-in">
-            <span className="text-xs font-black text-slate-950 dark:text-white uppercase tracking-wider block truncate">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider block truncate">
               Gabarit Visuel Estimé
             </span>
 
@@ -405,29 +543,29 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                     key={vol.id}
                     type="button"
                     onClick={() => setEstimatedVolume(vol.id)}
-                    className={`w-full p-3.5 rounded-2xl border text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                    className={`w-full p-3 rounded-2xl border text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50 dark:bg-blue-950/70 border-blue-600 ring-2 ring-blue-500/30 text-slate-950 dark:text-white shadow-xs'
+                        ? 'bg-teal-50/90 dark:bg-teal-950/50 border-teal-600 ring-2 ring-teal-500/20 text-slate-900 dark:text-white shadow-xs'
                         : isFixora
-                        ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 shadow-xs'
-                        : 'bg-[#161618] hover:bg-slate-800 border-slate-700 text-white shadow-xs'
+                        ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
+                        : 'bg-[#161618] hover:bg-slate-800 border-slate-800 text-white shadow-xs'
                     }`}
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-xs sm:text-sm text-slate-950 dark:text-white truncate">
+                        <span className="font-semibold text-xs text-slate-900 dark:text-white truncate">
                           {vol.label}
                         </span>
-                        <span className="bg-slate-200 dark:bg-slate-800 text-slate-950 dark:text-white text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 border border-slate-300 dark:border-slate-700">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-normal px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border border-slate-200 dark:border-slate-700">
                           {vol.range}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-800 dark:text-slate-200 font-bold block mt-0.5 truncate">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5 truncate">
                         {vol.desc}
                       </span>
                     </div>
 
-                    {isSelected && <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 font-black" />}
+                    {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 font-semibold" />}
                   </button>
                 );
               })}
@@ -437,14 +575,14 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setReportStep(2)}
-                className="w-1/3 h-12 px-3 rounded-xl border border-slate-300 dark:border-slate-700 font-black text-xs sm:text-sm text-slate-900 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
+                className="w-1/3 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 font-medium text-xs text-slate-700 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
               >
                 Retour
               </button>
               <button
                 type="button"
                 onClick={() => setReportStep(4)}
-                className="w-2/3 h-12 px-4 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="w-2/3 h-11 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
                 <span className="whitespace-nowrap">Suivant : Menace Nids</span>
                 <ArrowRight className="w-4 h-4 shrink-0 text-white" />
@@ -458,22 +596,22 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
           <div className="space-y-3 animate-in fade-in">
             {/* Nesting Toggle */}
             <div
-              className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
+              className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
                 isNestingZone
-                  ? 'bg-amber-100 dark:bg-amber-950/80 border-amber-500 shadow-xs ring-2 ring-amber-400/40'
+                  ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-500 shadow-xs ring-2 ring-amber-400/20'
                   : isFixora
-                  ? 'bg-white border-slate-300 text-slate-950 shadow-xs'
-                  : 'bg-[#161618] border-slate-700 text-white shadow-xs'
+                  ? 'bg-white border-slate-200 text-slate-900 shadow-xs'
+                  : 'bg-[#161618] border-slate-800 text-white shadow-xs'
               }`}
               onClick={() => setIsNestingZone(!isNestingZone)}
             >
               <div className="flex items-center gap-3">
-                <TurtleIcon className={`w-6 h-6 shrink-0 ${isNestingZone ? 'text-amber-700 dark:text-amber-300' : 'text-slate-700 dark:text-slate-300'}`} />
+                <TurtleIcon className={`w-5 h-5 shrink-0 ${isNestingZone ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`} />
                 <div>
-                  <span className="font-black text-xs sm:text-sm block text-slate-950 dark:text-white">
+                  <span className="font-semibold text-xs sm:text-sm block text-slate-900 dark:text-white">
                     Proximité de Nids de Tortues
                   </span>
-                  <span className="text-xs text-slate-800 dark:text-slate-200 font-bold block mt-0.5">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal block mt-0.5">
                     Zone de ponte active ou ponte observée
                   </span>
                 </div>
@@ -482,19 +620,19 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                 type="checkbox"
                 checked={isNestingZone}
                 onChange={(e) => setIsNestingZone(e.target.checked)}
-                className="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer pointer-events-none"
+                className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer pointer-events-none"
               />
             </div>
 
             {/* If Nesting Zone is active: Threat Selector */}
             {isNestingZone && (
               <div className="space-y-2 animate-in fade-in">
-                <span className="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
                   Type de Menace Côtière Identifiée
                 </span>
 
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-0.5 scrollbar-thin">
+                <div className="space-y-1.5 max-h-52 overflow-y-auto pr-0.5 scrollbar-thin">
                   {REAL_TURTLE_THREATS.map((t) => {
                     const isSelected = turtleDangerLevelText === t.label;
 
@@ -503,28 +641,28 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                         key={t.id}
                         type="button"
                         onClick={() => setTurtleDangerLevelText(t.label)}
-                        className={`w-full p-3 rounded-xl border text-left transition-all flex items-center justify-between gap-2.5 cursor-pointer ${
+                        className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2 cursor-pointer ${
                           isSelected
-                            ? 'bg-rose-50 dark:bg-rose-950 border-rose-600 ring-2 ring-rose-500/30 shadow-xs'
+                            ? 'bg-rose-50/80 dark:bg-rose-950/60 border-rose-600 ring-2 ring-rose-500/20 shadow-xs'
                             : isFixora
-                            ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 shadow-2xs'
-                            : 'bg-[#161618] hover:bg-slate-800 border-slate-700 text-white shadow-2xs'
+                            ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-2xs'
+                            : 'bg-[#161618] hover:bg-slate-800 border-slate-800 text-white shadow-2xs'
                         }`}
                       >
                         <div className="min-w-0">
-                          <span className="font-black text-xs sm:text-sm truncate block text-slate-950 dark:text-white">
+                          <span className="font-semibold text-xs truncate block text-slate-900 dark:text-white">
                             {t.shortLabel || t.label}
                           </span>
-                          <span className="text-[11px] text-slate-800 dark:text-slate-200 font-bold truncate block mt-0.5">
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal truncate block mt-0.5">
                             {t.speciesConcerned}
                           </span>
                         </div>
 
                         <span
-                          className={`text-[10px] font-black px-2.5 py-1 rounded-md shrink-0 shadow-2xs ${
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 shadow-2xs ${
                             t.dangerLevel === 'EXTRÊME'
                               ? 'bg-rose-600 text-white'
-                              : 'bg-amber-400 text-slate-950 border border-amber-500 font-black'
+                              : 'bg-amber-400 text-slate-950 border border-amber-500'
                           }`}
                         >
                           {t.dangerLevel}
@@ -540,14 +678,14 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setReportStep(3)}
-                className="w-1/3 h-12 px-3 rounded-xl border border-slate-300 dark:border-slate-700 font-black text-xs sm:text-sm text-slate-900 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
+                className="w-1/3 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 font-medium text-xs text-slate-700 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
               >
                 Retour
               </button>
               <button
                 type="button"
                 onClick={() => setReportStep(5)}
-                className="w-2/3 h-12 px-4 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="w-2/3 h-11 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
                 <span className="whitespace-nowrap">Calculer Score Priorité</span>
                 <ArrowRight className="w-4 h-4 shrink-0 text-white" />
@@ -560,31 +698,31 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
         {reportStep === 5 && (
           <div className="space-y-3 animate-in fade-in">
             {/* Score Pill Card */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#00388A] to-[#0A2540] text-white space-y-2.5 shadow-md border border-cyan-400/40">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-teal-800 via-teal-900 to-slate-950 text-white space-y-2 shadow-md border border-teal-500/30">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-cyan-200 truncate">
+                <span className="text-xs font-semibold uppercase tracking-wider text-teal-200 truncate">
                   Score de Priorité d'Intervention
                 </span>
-                <span className="bg-white text-[#00388A] text-xs sm:text-sm font-black px-3 py-1 rounded-full shadow-xs whitespace-nowrap shrink-0">
+                <span className="bg-white text-teal-950 text-xs sm:text-sm font-semibold px-2.5 py-1 rounded-full shadow-xs whitespace-nowrap shrink-0">
                   {calculateDynamicScore()} / 100 PTS
                 </span>
               </div>
 
-              <div className="text-xs text-white space-y-1 pt-2 border-t border-cyan-500/40">
-                <div className="flex justify-between font-bold">
-                  <span className="text-cyan-100">Gabarit estimé :</span>
-                  <span className="font-black text-white">+{estimatedVolume === 'very_large' ? 35 : estimatedVolume === 'large' ? 25 : 15} pts</span>
+              <div className="text-xs text-white space-y-1 pt-1.5 border-t border-teal-500/30">
+                <div className="flex justify-between font-normal">
+                  <span className="text-teal-100">Gabarit estimé :</span>
+                  <span className="font-semibold text-white">+{estimatedVolume === 'very_large' ? 35 : estimatedVolume === 'large' ? 25 : 15} pts</span>
                 </div>
-                <div className="flex justify-between font-bold">
-                  <span className="text-cyan-100">Protection nids :</span>
-                  <span className="font-black text-white">+{isNestingZone ? 25 : 0} pts</span>
+                <div className="flex justify-between font-normal">
+                  <span className="text-teal-100">Protection nids :</span>
+                  <span className="font-semibold text-white">+{isNestingZone ? 25 : 0} pts</span>
                 </div>
               </div>
             </div>
 
             {/* Optional Description */}
             <div>
-              <label className="block text-xs font-black text-slate-950 dark:text-white mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Repère de terrain (Optionnel) :
               </label>
               <input
@@ -592,10 +730,10 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Ex: Près du grand palmier à 30m de la piste..."
-                className={`w-full h-12 px-3.5 rounded-xl border text-xs sm:text-sm font-bold shadow-xs ${
+                className={`w-full h-11 px-3.5 rounded-xl border text-xs sm:text-sm font-normal shadow-xs ${
                   isFixora
-                    ? 'bg-white border-slate-300 text-slate-950 placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-500'
-                    : 'bg-[#161618] border-slate-700 text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500'
+                    ? 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-500'
+                    : 'bg-[#161618] border-slate-800 text-white placeholder:text-slate-500 focus:border-teal-400 focus:ring-2 focus:ring-teal-500'
                 }`}
               />
             </div>
@@ -604,15 +742,15 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setReportStep(4)}
-                className="w-1/3 h-12 px-3 rounded-xl border border-slate-300 dark:border-slate-700 font-black text-xs sm:text-sm text-slate-900 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
+                className="w-1/3 h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 font-medium text-xs text-slate-700 dark:text-white bg-white dark:bg-[#161618] hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap text-center shadow-xs"
               >
                 Retour
               </button>
               <button
                 type="submit"
-                className="w-2/3 h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="w-2/3 h-11 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
-                <CheckCircle2 className="w-5 h-5 shrink-0 text-white" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />
                 <span className="whitespace-nowrap">Enregistrer Signalement</span>
               </button>
             </div>

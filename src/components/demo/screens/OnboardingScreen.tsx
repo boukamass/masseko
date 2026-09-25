@@ -34,7 +34,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
         <div className="relative z-10 space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="bg-emerald-500 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               {onboardingSlide === 1 && "1. Préservation Littorale"}
               {onboardingSlide === 2 && "2. Zéro Connexion Requise"}
               {onboardingSlide === 3 && "3. Traçabilité Économique"}
@@ -44,7 +44,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </span>
           </div>
 
-          <h3 className="text-base font-black text-white leading-tight">
+          <h3 className="text-base font-semibold text-white leading-tight">
             {onboardingSlide === 1 && "Protégeons les Tortues Marines de Pointe-Noire"}
             {onboardingSlide === 2 && "Signalez Même Hors-Ligne sur la Côte Sauvage"}
             {onboardingSlide === 3 && "Valorisation & Rémunération des Déchets"}
@@ -63,7 +63,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         <p className="leading-relaxed">
           {onboardingSlide === 1 && (
             <span>
-              <strong className="text-slate-950 dark:text-white font-black">Masseko</strong> est votre plateforme citoyenne dédiée à la préservation du littoral. Chaque sac plastique ramassé sur la Côte Sauvage ou à Songolo sauve des bébés tortues de l'étouffement lors de la ponte.
+              <strong className="text-slate-950 dark:text-white font-semibold">Masseko</strong> est votre plateforme citoyenne dédiée à la préservation du littoral. Chaque sac plastique ramassé sur la Côte Sauvage ou à Songolo sauve des bébés tortues de l'étouffement lors de la ponte.
             </span>
           )}
           {onboardingSlide === 2 && (
@@ -73,7 +73,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           )}
           {onboardingSlide === 3 && (
             <span>
-              Chaque lot collecté est pesé sur balance certifiée, identifié par <strong className="text-slate-950 dark:text-white font-black">QR Code</strong> et acheminé vers les recycleurs partenaires (Congo Plastic Eco-Recycling, TotalEnergies RSE).
+              Chaque lot collecté est pesé sur balance certifiée, identifié par <strong className="text-slate-950 dark:text-white font-semibold">QR Code</strong> et acheminé vers les recycleurs partenaires (Congo Plastic Eco-Recycling, TotalEnergies RSE).
             </span>
           )}
         </p>
@@ -99,7 +99,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {onboardingSlide < 3 ? (
           <button
             onClick={() => setOnboardingSlide(onboardingSlide + 1)}
-            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <span className="whitespace-nowrap">Étape Suivante</span>
             <ArrowRight className="w-4 h-4 text-white" />
@@ -107,7 +107,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         ) : (
           <button
             onClick={() => setMobileScreen('auth')}
-            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <Award className="w-4 h-4 text-amber-300" />
             <span className="whitespace-nowrap">Créer mon Compte ou Me Connecter</span>
@@ -117,7 +117,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
         <button
           onClick={() => setMobileScreen('home')}
-          className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-950 dark:text-slate-100 font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer underline underline-offset-2"
+          className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-950 dark:text-slate-100 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer underline underline-offset-2"
         >
           <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           <span>Accès Direct Sans Compte (Mode Invité)</span>

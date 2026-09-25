@@ -173,7 +173,7 @@ SELECT
   turtle_danger_level,
   is_nesting_zone,
   CASE 
-    -- Verified Rangers, ONG Renatura, Admins, Collectors receive exact GPS coordinates
+    -- Verified Rangers, Éco-Gardes Accrédités, Admins, Collectors receive exact GPS coordinates
     WHEN public.current_user_role() IN ('admin', 'collector', 'association') OR is_nesting_zone = FALSE 
     THEN latitude
     -- Public users receive blurred coordinates (approx 800m grid buffer)

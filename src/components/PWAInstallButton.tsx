@@ -18,7 +18,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className }
         onClick={install}
         className={
           className ||
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition-all whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95"
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md transition-all whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95"
         }
         title="Installer l'application Masseko sur votre appareil"
       >
@@ -47,7 +47,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className }
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
             <div className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700 p-5 shadow-2xl text-white">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-emerald-400" />
                   <span>Installation sur iPhone / iPad</span>
                 </h3>
@@ -74,7 +74,7 @@ export const PWAInstallButton: React.FC<{ className?: string }> = ({ className }
               </div>
               <button
                 onClick={() => setShowIOSGuide(false)}
-                className="mt-4 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2 text-xs font-black text-white transition-colors"
+                className="mt-4 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2 text-xs font-semibold text-white transition-colors"
               >
                 J'ai compris
               </button>

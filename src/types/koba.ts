@@ -1,6 +1,28 @@
 export type MassekoRole = 'citizen' | 'fisherman' | 'school' | 'association' | 'collector' | 'admin' | 'recycler';
 export type KobaRole = MassekoRole;
 
+export type UserCategory = 
+  | 'student'             // Élève / Étudiant (Lycées, Universités)
+  | 'coastal_pro'         // Professionnel du Littoral / Entreprise / Tourisme
+  | 'fisherman'           // Pêcheur Artisanal / Mareyeur
+  | 'association_member'  // Membre ONG / Éco-Bénévole
+  | 'citizen'             // Citoyen & Résident Sentinelle
+  | 'municipal_agent'     // Agent Municipal / Brigade de Salubrité
+  | 'scientist'           // Scientifique / Chercheur en Biologie Marine
+  | 'recycler';           // Industriel / Recycleur de Plastique
+
+export interface UserCategoryDefinition {
+  id: UserCategory;
+  label: string;
+  shortLabel: string;
+  badge: string;
+  iconName: string;
+  description: string;
+  analysisUtility: string;
+  organizationLabel?: string;
+  organizationPlaceholder?: string;
+}
+
 export type WasteType = 'plastic_bottle' | 'plastic_bag' | 'fishing_net' | 'fishing_gear' | 'mixed_plastic' | 'other';
 
 export type WasteVolume = 'small' | 'medium' | 'large' | 'very_large';
@@ -27,6 +49,8 @@ export interface UserProfile {
   email: string;
   phone?: string;
   role: MassekoRole;
+  category?: UserCategory; // Catégorie socio-professionnelle (étudiant, professionnel, pêcheur...)
+  organizationOrSchool?: string; // Nom de l'établissement, entreprise, coopérative ou ONG
   neighborhood: string; // e.g. "Côte Sauvage", "Tié-Tié", "Loandjili", "Mpita"
   points: number;
   levelName: string; // e.g. "Sentinelle", "Gardien du Littoral"
@@ -128,3 +152,16 @@ export interface MassekoKPIs {
   estimatedTurtlesSaved: number; // Tortues marines préservées du plastique
 }
 export type KobaKPIs = MassekoKPIs;
+
+export interface UserNotification {
+  id: string;
+  reportId?: string;
+  type: 'collected' | 'reported' | 'bonus' | 'nest_protected';
+  title: string;
+  message: string;
+  locationName?: string;
+  weightKg?: number;
+  pointsEarned?: number;
+  timestamp: string;
+  isRead: boolean;
+}

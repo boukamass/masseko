@@ -2,26 +2,22 @@ import React, { useState } from 'react';
 import { 
   Lock, 
   Phone, 
-  Mail, 
   User, 
   MapPin, 
   ShieldCheck, 
-  Award, 
-  ArrowRight, 
   CheckCircle2, 
   AlertCircle, 
-  Users, 
-  GraduationCap, 
-  Truck, 
-  Fish, 
   Eye, 
   EyeOff, 
-  WifiOff, 
   KeyRound,
-  Compass
+  GraduationCap,
+  Briefcase,
+  Building2,
+  Info
 } from 'lucide-react';
-import { UserProfile, MassekoRole } from '../../../types/koba';
-import { MOCK_USERS, POINTE_NOIRE_NEIGHBORHOODS } from '../../../data/mockPointeNoireData';
+import { UserProfile, MassekoRole, UserCategory } from '../../../types/koba';
+import { POINTE_NOIRE_NEIGHBORHOODS, USER_CATEGORIES_DEFINITIONS } from '../../../data/mockPointeNoireData';
+import { ModernSelect, ModernSelectOption } from '../ModernSelect';
 import { TurtleIcon } from '../TurtleIcon';
 import { DemoScreen } from '../MobileBottomNav';
 
@@ -55,63 +51,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [regPhone, setRegPhone] = useState<string>('+242 06 ');
   const [regEmail, setRegEmail] = useState<string>('');
   const [regNeighborhood, setRegNeighborhood] = useState<string>(POINTE_NOIRE_NEIGHBORHOODS[0]);
+  const [regCategory, setRegCategory] = useState<UserCategory>('student');
+  const [regOrganization, setRegOrganization] = useState<string>('Lycée Victor Augagneur');
   const [regRole, setRegRole] = useState<MassekoRole>('citizen');
   const [regSchoolName, setRegSchoolName] = useState<string>('');
-  const [regPin, setRegPin] = useState<string>('2026');
+  const [regPin, setRegPin] = useState<string>('1234');
   const [regAcceptedCharter, setRegAcceptedCharter] = useState<boolean>(true);
   const [registerError, setRegisterError] = useState<string | null>(null);
-
-  // Quick Demo Login Handler
-  const handleQuickDemoSelect = (user: UserProfile) => {
-    setLoginPhoneOrEmail(user.phone || user.email);
-    setLoginPin('1234');
-    onLogin(user);
-    setAuthSuccess(`Bienvenue, ${user.fullName} (${user.levelName}) !`);
-    setTimeout(() => {
-      setAuthSuccess(null);
-      setMobileScreen('home');
-    }, 900);
-  };
 
   // Submit Login
   const handleSubmitLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
 
-    const cleanInput = loginPhoneOrEmail.trim().toLowerCase();
-    
-    // Find matching mock user
-    const matchedUser = MOCK_USERS.find(
-      u => (u.phone && u.phone.toLowerCase().replace(/\s/g, '').includes(cleanInput.replace(/\s/g, ''))) ||
-           (u.email && u.email.toLowerCase() === cleanInput)
-    );
-
-    if (matchedUser) {
-      onLogin(matchedUser);
-      setAuthSuccess(`Connexion réussie ! Heureux de vous revoir, ${matchedUser.fullName}.`);
-      setTimeout(() => {
-        setAuthSuccess(null);
-        setMobileScreen('home');
-      }, 800);
-    } else {
-      // Allow seamless login as custom user
-      const customUser: UserProfile = {
-        id: `user-${Date.now().toString().slice(-4)}`,
-        fullName: loginPhoneOrEmail.includes('@') ? loginPhoneOrEmail.split('@')[0] : 'Sentinelle Littorale',
-        email: loginPhoneOrEmail.includes('@') ? loginPhoneOrEmail : `${loginPhoneOrEmail.replace(/[^0-9]/g, '')}@masseko.cg`,
-        phone: loginPhoneOrEmail.includes('@') ? '+242 06 000 00 00' : loginPhoneOrEmail,
-        role: 'citizen',
-        neighborhood: 'Côte Sauvage (Sanctuaire)',
-        points: 150,
-        levelName: 'Sentinelle Active',
-      };
-      onLogin(customUser);
-      setAuthSuccess(`Connexion établie en mode sécurisé hors-ligne.`);
-      setTimeout(() => {
-        setAuthSuccess(null);
-        setMobileScreen('home');
-      }, 800);
+    const cleanInput = loginPhoneOrEmail.trim();
+    if (!cleanInput) {
+      setLoginError('Veuillez renseigner votre numéro de téléphone ou adresse email.');
+      return;
     }
+
+    const user: UserProfile = {
+      id: currentUser?.id || `user-${Date.now().toString().slice(-4)}`,
+      fullName: cleanInput.includes('@') ? cleanInput.split('@')[0] : 'Sentinelle Littorale',
+      email: cleanInput.includes('@') ? cleanInput : `${cleanInput.replace(/[^0-9]/g, '')}@masseko.cg`,
+      phone: cleanInput.includes('@') ? '+242 06 000 00 00' : cleanInput,
+      role: 'citizen',
+      category: 'citizen',
+      neighborhood: 'Côte Sauvage (Sanctuaire)',
+      points: 150,
+      levelName: 'Sentinelle Active',
+    };
+
+    onLogin(user);
+    setAuthSuccess(`Connexion réussie !`);
+    setTimeout(() => {
+      setAuthSuccess(null);
+      setMobileScreen('home');
+    }, 600);
   };
 
   // Submit Registration
@@ -124,18 +100,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       return;
     }
     if (!regAcceptedCharter) {
-      setRegisterError('Veuillez accepter la charte d’engagement écocitoyen MASSEKO.');
+      setRegisterError('Veuillez accepter la charte d’engagement écocitoyen.');
       return;
     }
 
+    const categoryToRole: Record<UserCategory, MassekoRole> = {
+      student: 'school',
+      coastal_pro: 'citizen',
+      fisherman: 'fisherman',
+      association_member: 'association',
+      citizen: 'citizen',
+      municipal_agent: 'collector',
+      scientist: 'admin',
+      recycler: 'recycler',
+    };
+
+    const targetRole = categoryToRole[regCategory] || 'citizen';
+
     const roleLevels: Record<MassekoRole, string> = {
-      citizen: 'Sentinelle Littorale Débutante',
-      fisherman: 'Éco-Gardien des Mers & Filets',
-      school: 'Ambassadeur Scolaire Jeunesse',
-      collector: 'Collecteur Terrestre Homologué',
-      association: 'Partenaire ONG Littorale',
-      admin: 'Modérateur Terrestre',
-      recycler: 'Partenaire Filière Valorisation',
+      citizen: 'Sentinelle Littorale',
+      fisherman: 'Éco-Gardien des Mers',
+      school: 'Ambassadeur Scolaire',
+      collector: 'Collecteur Terrestre',
+      association: 'Partenaire Littoral',
+      admin: 'Modérateur',
+      recycler: 'Partenaire Recyclage',
     };
 
     const newUser: UserProfile = {
@@ -143,44 +132,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       fullName: regFullName.trim(),
       email: regEmail.trim() || `${regPhone.replace(/[^0-9]/g, '') || 'citoyen'}@masseko.cg`,
       phone: regPhone.trim(),
-      role: regRole,
+      role: targetRole,
+      category: regCategory,
+      organizationOrSchool: regOrganization.trim() || undefined,
       neighborhood: regNeighborhood,
-      schoolName: regRole === 'school' ? (regSchoolName.trim() || 'Lycée Victor Augagneur') : undefined,
-      points: 50, // Welcome bonus
-      levelName: roleLevels[regRole] || 'Sentinelle Engagée',
+      schoolName: regCategory === 'student' ? (regOrganization.trim() || 'Lycée Victor Augagneur') : undefined,
+      points: 50,
+      levelName: roleLevels[targetRole] || 'Sentinelle Engagée',
       avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
     };
 
     onRegister(newUser);
-    setAuthSuccess(`Compte créé avec succès ! +50 Éco-Points de bienvenue attribués.`);
+    setAuthSuccess(`Compte créé avec succès !`);
     setTimeout(() => {
       setAuthSuccess(null);
       setMobileScreen('home');
-    }, 1000);
+    }, 700);
   };
 
   return (
     <div className="space-y-3.5 pb-3">
       {/* Brand Header */}
-      <div className="text-center pt-1 space-y-1.5">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md border border-blue-500">
+      <div className="text-center pt-1 space-y-1">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-600 text-white flex items-center justify-center mx-auto shadow-sm">
           <TurtleIcon className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-base font-black text-slate-950 dark:text-white flex items-center justify-center gap-1.5">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-white">
             Masseko Pointe-Noire
-            <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-950 border border-blue-300 shadow-2xs">
-              Pass Écocitoyen
-            </span>
           </h2>
-          <p className="text-xs text-slate-800 dark:text-slate-200 font-bold">
-            Protection des tortues marines & traçabilité des plastiques côtiers
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+            Protection des tortues marines et du littoral
           </p>
         </div>
       </div>
 
-      {/* Auth Mode Tabs (Connexion / Inscription) */}
-      <div className="flex rounded-2xl p-1 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+      {/* Auth Mode Switch Tabs */}
+      <div className="flex rounded-2xl p-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
         <button
           type="button"
           onClick={() => {
@@ -188,13 +176,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             setLoginError(null);
             setRegisterError(null);
           }}
-          className={`w-1/2 py-2 rounded-xl font-black text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+          className={`w-1/2 py-2 rounded-xl font-medium text-xs transition-all whitespace-nowrap cursor-pointer ${
             authMode === 'login'
-              ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-white shadow-xs'
-              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950 font-bold'
+              ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 font-semibold shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-normal'
           }`}
         >
-          <span className="whitespace-nowrap">Se Connecter</span>
+          Se Connecter
         </button>
 
         <button
@@ -204,21 +192,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             setLoginError(null);
             setRegisterError(null);
           }}
-          className={`w-1/2 py-2 rounded-xl font-black text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+          className={`w-1/2 py-2 rounded-xl font-medium text-xs transition-all whitespace-nowrap cursor-pointer ${
             authMode === 'register'
-              ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-white shadow-xs'
-              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950 font-bold'
+              ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 font-semibold shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 font-normal'
           }`}
         >
-          <span className="whitespace-nowrap">Créer un Compte</span>
+          Créer un Compte
         </button>
       </div>
 
       {/* Success Notification Alert */}
       {authSuccess && (
-        <div className="p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span className="font-bold">{authSuccess}</span>
+        <div className="p-3 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-teal-900 dark:text-teal-200 text-xs flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+          <span className="font-medium">{authSuccess}</span>
         </div>
       )}
 
@@ -226,7 +214,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       {authMode === 'login' && (
         <form onSubmit={handleSubmitLogin} className="space-y-3 animate-in fade-in">
           {loginError && (
-            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
               <span>{loginError}</span>
             </div>
@@ -235,14 +223,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <div
             className={`p-3.5 rounded-2xl border space-y-3 ${
               isFixora
-                ? 'bg-white border-slate-300 text-slate-950 shadow-xs'
-                : 'bg-[#1C1C1E] border-slate-800 text-white shadow-xs'
+                ? 'bg-white border-slate-200 text-slate-900 shadow-xs'
+                : 'bg-[#161618] border-slate-800 text-white shadow-xs'
             }`}
           >
             {/* Phone or Email Field */}
             <div className="space-y-1">
-              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                Téléphone (Congo +242) ou Email :
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Téléphone (+242) ou Email :
               </label>
               <div className="relative">
                 <input
@@ -251,105 +239,54 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={loginPhoneOrEmail}
                   onChange={(e) => setLoginPhoneOrEmail(e.target.value)}
                   placeholder="+242 06 123 45 67"
-                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-bold border outline-hidden transition-colors ${
+                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
-                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
+                      ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                      : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
                   }`}
                 />
-                <Phone className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3 pointer-events-none" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
               </div>
             </div>
 
             {/* PIN Code / Password Field */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                  Code PIN Terrestre ou Mot de Passe :
-                </label>
-                <span className="text-[10px] text-blue-700 dark:text-blue-300 font-black">
-                  (Défaut: 1234)
-                </span>
-              </div>
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Mot de passe ou Code PIN :
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={loginPin}
                   onChange={(e) => setLoginPin(e.target.value)}
-                  placeholder="Code PIN à 4 chiffres"
-                  className={`w-full h-10 pl-9 pr-10 rounded-xl text-xs font-bold border outline-hidden transition-colors ${
+                  placeholder="Votre mot de passe"
+                  className={`w-full h-10 pl-9 pr-10 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
-                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
+                      ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                      : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
                   }`}
                 />
-                <KeyRound className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3 pointer-events-none" />
+                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white cursor-pointer"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
-
-            {/* Offline Token Info Badge */}
-            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center gap-2 text-[10.5px] text-slate-800 dark:text-slate-200 font-bold">
-              <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-              <span>Authentification locale hors-ligne active (SQLite / PowerSync).</span>
             </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full h-12 rounded-2xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
           >
-            <Lock className="w-4 h-4 text-cyan-300 shrink-0" />
-            <span className="whitespace-nowrap">Se Connecter & Accéder au Pass</span>
+            <Lock className="w-4 h-4 text-teal-200 shrink-0" />
+            <span className="whitespace-nowrap">Se Connecter</span>
           </button>
-
-          {/* Quick Demo Personas Selector */}
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Connexion Rapide (Personas Pointe-Noire)
-              </span>
-              <Award className="w-4 h-4 text-amber-500" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5">
-              {MOCK_USERS.slice(0, 4).map((u) => {
-                const isSelected = currentUser?.id === u.id;
-                return (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => handleQuickDemoSelect(u)}
-                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
-                      isSelected
-                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/60 ring-2 ring-blue-500/40 text-blue-950 dark:text-white'
-                        : isFixora
-                        ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 shadow-xs'
-                        : 'bg-[#1C1C1E] hover:bg-slate-800 border-slate-700 text-white shadow-xs'
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
-                      {u.fullName.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <span className="font-black text-xs block truncate text-slate-950 dark:text-white">{u.fullName}</span>
-                      <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold truncate block">
-                        {u.role === 'citizen' ? 'Sentinelle' : u.role === 'collector' ? 'Collecteur' : u.role === 'fisherman' ? 'Pêcheur' : 'Lycée'}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </form>
       )}
 
@@ -357,23 +294,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       {authMode === 'register' && (
         <form onSubmit={handleSubmitRegister} className="space-y-3 animate-in fade-in">
           {registerError && (
-            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <span className="font-bold">{registerError}</span>
+              <span>{registerError}</span>
             </div>
           )}
 
           <div
             className={`p-3.5 rounded-2xl border space-y-3 ${
               isFixora
-                ? 'bg-white border-slate-300 text-slate-950 shadow-xs'
-                : 'bg-[#1C1C1E] border-slate-800 text-white shadow-xs'
+                ? 'bg-white border-slate-200 text-slate-900 shadow-xs'
+                : 'bg-[#161618] border-slate-800 text-white shadow-xs'
             }`}
           >
             {/* Full Name */}
             <div className="space-y-1">
-              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                Nom Complet ou Pseudonyme Écocitoyen :
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Nom complet ou Pseudonyme :
               </label>
               <div className="relative">
                 <input
@@ -381,207 +318,192 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   required
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  placeholder="Ex: Jean-Marc Mabiala"
-                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
+                  placeholder="Ex: Mireille Ngoma"
+                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
-                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
+                      ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                      : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
                   }`}
                 />
-                <User className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
+                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
               </div>
             </div>
 
-            {/* Phone & Email */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                  Téléphone (+242) :
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="+242 06 123 45 67"
-                    className={`w-full h-11 pl-8 pr-2 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
-                      isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
-                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
-                    }`}
-                  />
-                  <Phone className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 absolute left-2.5 top-3.5 pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                  Email (Optionnel) :
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="contact@exemple.cg"
-                    className={`w-full h-11 pl-8 pr-2 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
-                      isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
-                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
-                    }`}
-                  />
-                  <Mail className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 absolute left-2.5 top-3.5 pointer-events-none" />
-                </div>
-              </div>
-            </div>
-
-            {/* Neighborhood Selector */}
+            {/* Phone */}
             <div className="space-y-1">
-              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                Quartier / Secteur Littoral de Pointe-Noire :
-              </label>
-              <div className="relative">
-                <select
-                  value={regNeighborhood}
-                  onChange={(e) => setRegNeighborhood(e.target.value)}
-                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors appearance-none cursor-pointer ${
-                    isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
-                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
-                  }`}
-                >
-                  {POINTE_NOIRE_NEIGHBORHOODS.map((n) => (
-                    <option key={n} value={n} className="text-slate-950">
-                      {n}
-                    </option>
-                  ))}
-                </select>
-                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400 absolute left-3 top-3.5 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Role / Engagement Type */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                Rôle & Statut dans la Communauté Masseko :
-              </label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {[
-                  { id: 'citizen' as MassekoRole, label: 'Citoyen Sentinelle', icon: TurtleIcon, desc: 'Signalement & suivi' },
-                  { id: 'fisherman' as MassekoRole, label: 'Pêcheur / Gardien', icon: Fish, desc: 'Filets fantômes' },
-                  { id: 'school' as MassekoRole, label: 'Établissement / École', icon: GraduationCap, desc: 'Challenge inter-écoles' },
-                  { id: 'collector' as MassekoRole, label: 'Collecteur Agréé', icon: Truck, desc: 'Tournées & pesées' },
-                ].map((roleItem) => {
-                  const Icon = roleItem.icon;
-                  const isRoleActive = regRole === roleItem.id;
-                  return (
-                    <button
-                      key={roleItem.id}
-                      type="button"
-                      onClick={() => setRegRole(roleItem.id)}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
-                        isRoleActive
-                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/80 ring-2 ring-blue-500/30 text-blue-950 dark:text-blue-100 font-black'
-                          : isFixora
-                          ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-950 font-bold'
-                          : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200 font-bold'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                        <span className="font-black text-[11px] truncate">{roleItem.label}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold truncate">{roleItem.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* If school selected, ask school name */}
-            {regRole === 'school' && (
-              <div className="space-y-1 animate-in fade-in">
-                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                  Nom de l'Établissement Scolaire :
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={regSchoolName}
-                    onChange={(e) => setRegSchoolName(e.target.value)}
-                    placeholder="Ex: Lycée Victor Augagneur, CEG Anselme Pembellot"
-                    className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
-                      isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
-                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
-                    }`}
-                  />
-                  <GraduationCap className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
-                </div>
-              </div>
-            )}
-
-            {/* PIN Code Creation */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
-                Créer un Code PIN Rapide (4 Chiffres) :
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Numéro de Téléphone :
               </label>
               <div className="relative">
                 <input
-                  type="text"
-                  maxLength={4}
+                  type="tel"
                   required
-                  value={regPin}
-                  onChange={(e) => setRegPin(e.target.value)}
-                  placeholder="2026"
-                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold font-mono tracking-widest border outline-hidden transition-colors ${
+                  value={regPhone}
+                  onChange={(e) => setRegPhone(e.target.value)}
+                  placeholder="+242 06 123 45 67"
+                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
-                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
+                      ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                      : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
                   }`}
                 />
-                <KeyRound className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
               </div>
             </div>
 
-            {/* Charter Agreement */}
-            <label className="flex items-start gap-2 pt-1 cursor-pointer">
+            {/* Neighborhood Dropdown */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Quartier de Résidence :
+              </label>
+              <ModernSelect
+                value={regNeighborhood}
+                onChange={(val) => setRegNeighborhood(val)}
+                themeMode={themeMode}
+                size="sm"
+                icon={<MapPin className="w-4 h-4 text-teal-600" />}
+                options={POINTE_NOIRE_NEIGHBORHOODS.map((nh) => ({
+                  value: nh,
+                  label: nh,
+                  subtitle: 'Pointe-Noire',
+                  badge: nh.includes('Sanctuaire') || nh.includes('Luth') ? 'Zone Protégée' : undefined,
+                  badgeColor: 'emerald',
+                }))}
+              />
+            </div>
+
+            {/* Profile Category Dropdown (Crucial for Impact Analytics) */}
+            <div className="space-y-1.5 pt-0.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <span>Profil & Catégorie Socio-Professionnelle :</span>
+                </label>
+                <span className="text-[10px] text-teal-700 dark:text-teal-300 font-medium bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-1.5 py-0.2 rounded-md">
+                  Analyses d'Impact
+                </span>
+              </div>
+
+              <ModernSelect
+                value={regCategory}
+                onChange={(val) => {
+                  const cat = val as UserCategory;
+                  setRegCategory(cat);
+                  const def = USER_CATEGORIES_DEFINITIONS.find((d) => d.id === cat);
+                  if (def?.organizationPlaceholder) {
+                    setRegOrganization(def.organizationPlaceholder.split(',')[0].replace('Ex: ', '').trim());
+                  }
+                }}
+                themeMode={themeMode}
+                size="md"
+                icon={<GraduationCap className="w-4 h-4 text-teal-600" />}
+                options={USER_CATEGORIES_DEFINITIONS.map((cat) => ({
+                  value: cat.id,
+                  label: cat.label,
+                  subtitle: cat.description,
+                  badge: cat.shortLabel,
+                  badgeColor: (cat.id === 'student' || cat.id === 'association_member'
+                    ? 'emerald'
+                    : cat.id === 'coastal_pro'
+                    ? 'blue'
+                    : cat.id === 'fisherman' || cat.id === 'recycler'
+                    ? 'teal'
+                    : cat.id === 'scientist'
+                    ? 'purple'
+                    : 'amber') as ModernSelectOption['badgeColor'],
+                }))}
+              />
+
+              {/* Dynamic Analysis Utility Explanation */}
+              {(() => {
+                const currentDef = USER_CATEGORIES_DEFINITIONS.find((d) => d.id === regCategory) || USER_CATEGORIES_DEFINITIONS[0];
+                return (
+                  <div className="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] space-y-1">
+                    <p className="text-teal-900 dark:text-teal-200 font-medium">
+                      {currentDef.description}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-400 font-normal flex items-start gap-1">
+                      <Info className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+                      <span><strong>Pertinence Analyses :</strong> {currentDef.analysisUtility}</span>
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Organization / School / Company Name */}
+            {(() => {
+              const currentDef = USER_CATEGORIES_DEFINITIONS.find((d) => d.id === regCategory) || USER_CATEGORIES_DEFINITIONS[0];
+              return (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                    {currentDef.organizationLabel || 'Établissement, Entreprise ou Structure :'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={regOrganization}
+                      onChange={(e) => setRegOrganization(e.target.value)}
+                      placeholder={currentDef.organizationPlaceholder || 'Ex: Lycée Victor Augagneur, Palm Beach...'}
+                      className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
+                        isFixora
+                          ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                          : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
+                      }`}
+                    />
+                    <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* PIN Code */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+                Créer un Mot de passe ou PIN :
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  required
+                  value={regPin}
+                  onChange={(e) => setRegPin(e.target.value)}
+                  placeholder="Votre mot de passe"
+                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-normal border outline-hidden transition-colors ${
+                    isFixora
+                      ? 'bg-slate-50 border-slate-200 focus:border-teal-600 focus:bg-white text-slate-900 placeholder:text-slate-400'
+                      : 'bg-slate-900 border-slate-700 focus:border-teal-400 focus:bg-black text-white placeholder:text-slate-500'
+                  }`}
+                />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Charter Checkbox */}
+            <div className="flex items-start gap-2 pt-1">
               <input
                 type="checkbox"
+                id="charter"
                 checked={regAcceptedCharter}
                 onChange={(e) => setRegAcceptedCharter(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 mt-0.5 cursor-pointer"
               />
-              <span className="text-[11px] text-slate-800 dark:text-slate-200 font-bold leading-tight">
-                J’accepte la charte écocitoyenne de Pointe-Noire (non-divulgation des nids sensibles aux braconniers & tri certifié).
-              </span>
-            </label>
+              <label htmlFor="charter" className="text-xs text-slate-600 dark:text-slate-400 font-normal leading-tight cursor-pointer">
+                J'accepte de participer activement à la protection des plages et des tortues marines de Pointe-Noire.
+              </label>
+            </div>
           </div>
 
-          {/* Submit Registration Button */}
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full h-12 rounded-2xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-medium text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
           >
-            <Award className="w-4 h-4 text-amber-300 shrink-0" />
-            <span className="whitespace-nowrap">Créer mon Compte (+50 Pts Offerts)</span>
-            <ArrowRight className="w-4 h-4 text-white shrink-0" />
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">Créer Mon Compte</span>
           </button>
         </form>
       )}
-
-      {/* Guest Mode Direct Access */}
-      <div className="pt-1 text-center">
-        <button
-          type="button"
-          onClick={() => setMobileScreen('home')}
-          className="text-xs text-slate-950 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 font-black py-1.5 transition-colors inline-flex items-center gap-1.5 cursor-pointer underline underline-offset-2"
-        >
-          <span>Continuer en Mode Invité (Sans Compte)</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
     </div>
   );
 };

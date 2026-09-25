@@ -3,22 +3,21 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
   MapPin, 
-  Layers, 
-  ShieldCheck, 
-  Lock, 
   CheckCircle2, 
   X, 
   ArrowRight, 
-  Scale, 
   Camera, 
   AlertTriangle,
   Compass,
   Plus,
   Minus,
-  Maximize2,
   Truck,
   Navigation,
-  Info
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  Eye,
+  Scale
 } from 'lucide-react';
 import { WasteReport } from '../../../types/koba';
 import { POINTE_NOIRE_COASTAL_SITES } from '../../../data/mockPointeNoireData';
@@ -30,15 +29,13 @@ interface MapScreenProps {
   reports: WasteReport[];
   selectedMapPoint: WasteReport | null;
   setSelectedMapPoint: (report: WasteReport | null) => void;
+  setSelectedReportToCollect?: (report: WasteReport | null) => void;
+  setWeighInput?: (val: number) => void;
   mapFilter: 'all' | 'critical' | 'turtle_nest' | 'collected';
   setMapFilter: (filter: 'all' | 'critical' | 'turtle_nest' | 'collected') => void;
   mapSectorFilter: string;
   setMapSectorFilter: (sector: string) => void;
-  isRangerVerified: boolean;
-  setIsRangerVerified: (verified: boolean) => void;
-  mapTileMode: 'osm_offline' | 'satellite';
-  setMapTileMode: (mode: 'osm_offline' | 'satellite') => void;
-  themeMode: 'forest' | 'fixora';
+  themeMode?: 'forest' | 'fixora';
   setMobileScreen: (screen: DemoScreen) => void;
   handleApproveReport: (id: string) => void;
   handleRejectReport: (id: string) => void;
@@ -54,25 +51,37 @@ const COASTAL_PATROL_COORDINATES: [number, number][] = [
   [-4.8120, 11.8630], // Ngoyo Littoral Sud
 ];
 
-// Active patrol vehicle position (Uber-style eco-patrol)
+// Active patrol vehicle position
 const PATROL_VEHICLE_COORDS: [number, number] = [-4.7885, 11.8335];
 
-// Default balanced overview center & zoom for Pointe-Noire (never over-zoomed)
+// Default overview center & zoom for Pointe-Noire
 const POINTE_NOIRE_CENTER: [number, number] = [-4.785, 11.848];
 const DEFAULT_BALANCED_ZOOM = 12.3;
+
+const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80';
+
+// Geodesic distance calculator in meters
+function calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c);
+}
 
 export const MapScreen: React.FC<MapScreenProps> = ({
   reports,
   selectedMapPoint,
   setSelectedMapPoint,
+  setSelectedReportToCollect,
+  setWeighInput,
   mapFilter,
   setMapFilter,
   mapSectorFilter,
   setMapSectorFilter,
-  isRangerVerified,
-  setIsRangerVerified,
-  mapTileMode,
-  setMapTileMode,
   themeMode,
   setMobileScreen,
   handleApproveReport,
@@ -86,8 +95,34 @@ export const MapScreen: React.FC<MapScreenProps> = ({
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.LayerGroup | null>(null);
 
-  const [currentZoom, setCurrentZoom] = useState<number>(DEFAULT_BALANCED_ZOOM);
   const [showVehicleInfo, setShowVehicleInfo] = useState<boolean>(false);
+  const [inspectingPhotoReport, setInspectingPhotoReport] = useState<WasteReport | null>(null);
+  const [photoZoomLevel, setPhotoZoomLevel] = useState<number>(1);
+  const [hasArrived, setHasArrived] = useState<boolean>(false);
+
+  // Dynamic distance and ETA to selected waste point
+  const distanceMeters = selectedMapPoint
+    ? calculateDistanceMeters(
+        PATROL_VEHICLE_COORDS[0],
+        PATROL_VEHICLE_COORDS[1],
+        selectedMapPoint.latitude,
+        selectedMapPoint.longitude
+      )
+    : 0;
+
+  const etaMinutes = Math.max(1, Math.round(distanceMeters / 250)); // ~15 km/h sur piste sable
+
+  // Reset arrival state when selected point changes
+  useEffect(() => {
+    setHasArrived(false);
+  }, [selectedMapPoint?.id]);
+
+  const handleStartWeighing = (report: WasteReport) => {
+    setSelectedReportToCollect?.(report);
+    setWeighInput?.(report.estimatedWeightKg || 25);
+    setHasArrived(false);
+    setMobileScreen('tour');
+  };
 
   // Filtered reports list
   const filteredReports = reports.filter((r) => {
@@ -98,31 +133,32 @@ export const MapScreen: React.FC<MapScreenProps> = ({
     return true;
   });
 
-  // Determine active tile URL based on mode (100% Free & Open - No API Key Required)
-  const getTileConfig = useCallback(() => {
-    if (mapTileMode === 'satellite') {
-      return {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        options: {
-          maxZoom: 18,
-          subdomains: ['server', 'services'],
-          attribution: '&copy; Esri &mdash; Satellite HD Pointe-Noire',
-          crossOrigin: true,
-        },
-      };
-    }
+  // Current index in filtered reports for modal carousel
+  const activePhotoIndex = inspectingPhotoReport 
+    ? filteredReports.findIndex((r) => r.id === inspectingPhotoReport.id)
+    : -1;
 
-    // Official OpenStreetMap Standard Tiles - 100% Free, Reliable, No API Key Required
-    return {
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      options: {
-        maxZoom: 19,
-        subdomains: ['a', 'b', 'c'],
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributeurs',
-        crossOrigin: true,
-      },
-    };
-  }, [mapTileMode]);
+  const handleNextPhoto = () => {
+    if (filteredReports.length === 0 || activePhotoIndex === -1) return;
+    const nextIdx = (activePhotoIndex + 1) % filteredReports.length;
+    const nextReport = filteredReports[nextIdx];
+    setInspectingPhotoReport(nextReport);
+    setSelectedMapPoint(nextReport);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.panTo([nextReport.latitude, nextReport.longitude], { animate: true, duration: 0.4 });
+    }
+  };
+
+  const handlePrevPhoto = () => {
+    if (filteredReports.length === 0 || activePhotoIndex === -1) return;
+    const prevIdx = (activePhotoIndex - 1 + filteredReports.length) % filteredReports.length;
+    const prevReport = filteredReports[prevIdx];
+    setInspectingPhotoReport(prevReport);
+    setSelectedMapPoint(prevReport);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.panTo([prevReport.latitude, prevReport.longitude], { animate: true, duration: 0.4 });
+    }
+  };
 
   // 1. Initialize Leaflet Map Instance
   useEffect(() => {
@@ -134,12 +170,16 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       zoom: DEFAULT_BALANCED_ZOOM,
       minZoom: 10,
       maxZoom: 18,
-      zoomControl: false, // We provide sleek Uber-style floating controls
+      zoomControl: false,
       attributionControl: false,
     });
 
-    const tileConfig = getTileConfig();
-    const tileLayer = L.tileLayer(tileConfig.url, tileConfig.options).addTo(map);
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      subdomains: ['a', 'b', 'c'],
+      attribution: '&copy; OpenStreetMap contributors',
+      crossOrigin: true,
+    }).addTo(map);
     tileLayerRef.current = tileLayer;
 
     const routeLayer = L.layerGroup().addTo(map);
@@ -150,11 +190,6 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
     mapInstanceRef.current = map;
 
-    map.on('zoomend', () => {
-      setCurrentZoom(map.getZoom());
-    });
-
-    // Invalidate size on load and on container resize to ensure crisp complete tile rendering
     const triggerInvalidate = () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
@@ -185,55 +220,38 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, []); // Run once on mount
+  }, []);
 
-  // 2. Update Tile Layer when tile mode or theme changes
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-    const tileConfig = getTileConfig();
-
-    if (tileLayerRef.current) {
-      mapInstanceRef.current.removeLayer(tileLayerRef.current);
-    }
-
-    const newTileLayer = L.tileLayer(tileConfig.url, tileConfig.options).addTo(mapInstanceRef.current);
-    tileLayerRef.current = newTileLayer;
-  }, [mapTileMode, isFixora, getTileConfig]);
-
-  // 3. Draw Coastal Itinerary & Uber-style Active Patrol Vehicle
+  // 2. Draw Coastal Patrol Route & Active Live Route towards Selected Waste
   useEffect(() => {
     if (!mapInstanceRef.current || !routeLayerRef.current) return;
     routeLayerRef.current.clearLayers();
 
     // Coastal corridor dashed route
     const patrolRoute = L.polyline(COASTAL_PATROL_COORDINATES, {
-      color: '#10b981',
-      weight: 3.5,
-      dashArray: '8, 8',
-      opacity: 0.75,
+      color: '#0284c7',
+      weight: 2.5,
+      dashArray: '5, 5',
+      opacity: 0.5,
       lineCap: 'round',
     });
     routeLayerRef.current.addLayer(patrolRoute);
 
-    // Active Eco-Patrol Vehicle Marker (Uber-style)
+    // Discreet Active Eco-Patrol Vehicle Marker
     const vehicleIcon = L.divIcon({
-      className: 'uber-vehicle-marker',
+      className: 'discreet-patrol-marker',
       html: `
-        <div class="relative flex items-center justify-center cursor-pointer group">
-          <span class="absolute -inset-2 rounded-full bg-emerald-400/40 animate-ping"></span>
-          <div class="w-8 h-8 rounded-2xl bg-emerald-600 border-2 border-white shadow-xl flex items-center justify-center text-white transition-transform group-hover:scale-110">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+        <div class="relative flex items-center justify-center cursor-pointer">
+          <span class="absolute -inset-1.5 rounded-full bg-emerald-400/40 animate-ping"></span>
+          <div class="w-7 h-7 rounded-full bg-emerald-600 border-2 border-white shadow-lg flex items-center justify-center text-white">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
             </svg>
-          </div>
-          <div class="absolute -bottom-4 bg-slate-900/90 text-[8px] font-black text-emerald-300 px-1.5 py-0.2 rounded-full shadow-md whitespace-nowrap border border-emerald-500/40">
-            Patrouille #1
           </div>
         </div>
       `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     const vehicleMarker = L.marker(PATROL_VEHICLE_COORDS, { icon: vehicleIcon });
@@ -241,9 +259,51 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       setShowVehicleInfo((prev) => !prev);
     });
     routeLayerRef.current.addLayer(vehicleMarker);
-  }, []);
 
-  // 4. Update Hotspots Markers (Uber-style)
+    // If a waste point is selected, draw active glowing navigation route line from vehicle to waste!
+    if (selectedMapPoint) {
+      const startCoord = PATROL_VEHICLE_COORDS;
+      const endCoord: [number, number] = [selectedMapPoint.latitude, selectedMapPoint.longitude];
+
+      // Outer glow line (teal aura)
+      const outerGlowLine = L.polyline([startCoord, endCoord], {
+        color: '#0d9488',
+        weight: 8,
+        opacity: 0.35,
+        lineCap: 'round',
+      });
+      routeLayerRef.current.addLayer(outerGlowLine);
+
+      // Inner high-visibility animated guidance route line
+      const directRoute = L.polyline([startCoord, endCoord], {
+        color: '#0ea5e9',
+        weight: 4.5,
+        dashArray: '8, 8',
+        opacity: 0.95,
+        lineCap: 'round',
+      });
+      routeLayerRef.current.addLayer(directRoute);
+
+      // Destination target pulse circle
+      const targetPulse = L.circleMarker(endCoord, {
+        radius: 12,
+        color: '#059669',
+        fillColor: '#10b981',
+        fillOpacity: 0.3,
+        weight: 2.5,
+      });
+      routeLayerRef.current.addLayer(targetPulse);
+
+      // Auto fit bounds to smoothly zoom in on the trajectory
+      mapInstanceRef.current.fitBounds([startCoord, endCoord], {
+        padding: [60, 60],
+        maxZoom: 15,
+        animate: true,
+      });
+    }
+  }, [selectedMapPoint]);
+
+  // 3. Draw Clean, Non-Intrusive Vector Markers on Map
   useEffect(() => {
     if (!mapInstanceRef.current || !markersLayerRef.current) return;
     markersLayerRef.current.clearLayers();
@@ -254,82 +314,63 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       const isCollected = report.status === 'collected' || report.status === 'validated';
       const isNesting = report.isNestingZone;
 
-      // Coordinate obfuscation for public safety (Anti-poaching protection: ~800m offset if not verified)
-      let lat = report.latitude;
-      let lng = report.longitude;
-      if (!isRangerVerified && isNesting) {
-        // Deterministic tiny offset to prevent exact nest coordinates exposure
-        const hash = (report.id.charCodeAt(report.id.length - 1) % 5) - 2;
-        lat += hash * 0.0035;
-        lng += hash * 0.0035;
-      }
-
-      // Build Uber-style HTML pin
-      let bgClass = 'bg-amber-500 text-white border-white';
-      let badgeLabel = report.locationName.split(' ')[0] || 'Point';
-      let iconSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
+      let pinColor = 'bg-amber-500';
+      let iconSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>`;
 
       if (isNesting) {
-        bgClass = 'bg-emerald-600 text-white border-emerald-200';
-        badgeLabel = 'Nid';
-        iconSvg = `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /><path d="M12 2a3 3 0 00-3 3v1h6V5a3 3 0 00-3-3zM4 9a2 2 0 00-2 2v2a2 2 0 002 2h2V9H4zm16 0h-2v6h2a2 2 0 002-2v-2a2 2 0 00-2-2zM6 17l-2 3a2 2 0 001.7 3H7a2 2 0 001.6-.8L10 20H6zm12 0h-4l1.4 2.2a2 2 0 001.6.8h1.3a2 2 0 001.7-3l-2-3z" /></svg>`;
+        pinColor = 'bg-emerald-600';
+        iconSvg = `<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 2a2 2 0 00-2 2v1h4V4a2 2 0 00-2-2zM4 9a2 2 0 00-2 2v1a2 2 0 002 2h1V9H4zm16 0h-1v5h1a2 2 0 002-2v-1a2 2 0 00-2-2zM6 16l-1 2a2 2 0 001.5 2.5h1.5l-1-4.5H6zm12 0h-1l-1 4.5h1.5a2 2 0 001.5-2.5l-1-2z" /></svg>`;
       } else if (isCollected) {
-        bgClass = 'bg-blue-600 text-white border-blue-200';
-        badgeLabel = 'Collecté';
-        iconSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+        pinColor = 'bg-blue-600';
+        iconSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`;
       } else if (isCritical) {
-        bgClass = 'bg-red-600 text-white border-red-200';
-        badgeLabel = 'Critique';
+        pinColor = 'bg-rose-600';
         iconSvg = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
       }
 
       const isSelectedClass = isSelected
-        ? 'ring-4 ring-white/90 scale-125 z-30 shadow-2xl'
-        : 'hover:scale-115 z-10';
+        ? 'scale-125 z-40 ring-4 ring-sky-400/50 shadow-lg'
+        : 'hover:scale-110 z-10';
 
       const pingAnimation = isCritical && !isCollected
-        ? '<span class="absolute -inset-2 rounded-full bg-red-500/60 animate-ping"></span>'
+        ? '<span class="absolute -inset-1 rounded-full bg-rose-500/30 animate-ping"></span>'
         : '';
 
       const markerHtml = `
-        <div class="relative flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${isSelectedClass}">
+        <div class="relative flex flex-col items-center justify-center cursor-pointer transition-transform duration-150 ${isSelectedClass}">
           ${pingAnimation}
-          <div class="w-7 h-7 rounded-full ${bgClass} border-2 shadow-lg flex items-center justify-center shrink-0">
+          <div class="w-7 h-7 rounded-full ${pinColor} text-white border-2 border-white shadow-md flex items-center justify-center shrink-0">
             ${iconSvg}
           </div>
-          <span class="text-[8.5px] font-black bg-slate-950/90 text-white px-1.5 py-0.2 rounded-md mt-0.5 max-w-[85px] truncate shadow-md border border-white/20 whitespace-nowrap">
-            ${badgeLabel}
-          </span>
         </div>
       `;
 
       const customIcon = L.divIcon({
-        className: 'uber-hotspot-marker',
+        className: 'clean-map-icon',
         html: markerHtml,
-        iconSize: [30, 42],
-        iconAnchor: [15, 21],
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
       });
 
-      const marker = L.marker([lat, lng], { icon: customIcon });
+      const marker = L.marker([report.latitude, report.longitude], { icon: customIcon });
 
       marker.on('click', () => {
         setSelectedMapPoint(report);
-        // Pan smoothly to the point without zooming in too much (Uber-style balanced overview)
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.panTo([lat, lng], { animate: true, duration: 0.5 });
+          mapInstanceRef.current.panTo([report.latitude, report.longitude], { animate: true, duration: 0.4 });
         }
       });
 
       markersLayerRef.current?.addLayer(marker);
     });
-  }, [filteredReports, selectedMapPoint, isRangerVerified, setSelectedMapPoint]);
+  }, [filteredReports, selectedMapPoint, setSelectedMapPoint]);
 
-  // Recenter / Reset to balanced overview (Uber-style)
+  // Recenter / Reset to overview
   const handleResetOverview = () => {
     if (!mapInstanceRef.current) return;
     mapInstanceRef.current.setView(POINTE_NOIRE_CENTER, DEFAULT_BALANCED_ZOOM, {
       animate: true,
-      duration: 0.6,
+      duration: 0.5,
     });
   };
 
@@ -345,337 +386,518 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
   return (
     <div className="space-y-3 pb-2">
-      {/* Top Map Filter & Layer Header */}
+      {/* 1. Clean Sector Selector & Category Pills */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          {/* Security Ranger Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsRangerVerified(!isRangerVerified)}
-            className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer shadow-2xs ${
-              isRangerVerified
-                ? 'bg-[#0A3D62] dark:bg-sky-600 text-white shadow-xs'
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700'
-            }`}
-            title="Activer la vue précise Éco-Garde Renatura"
-          >
-            {isRangerVerified ? (
-              <>
-                <ShieldCheck className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                <span className="whitespace-nowrap">Ranger Renatura (GPS Précis)</span>
-              </>
-            ) : (
-              <>
-                <Lock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300 shrink-0" />
-                <span className="whitespace-nowrap">Vue Publique (Floutage 800m)</span>
-              </>
-            )}
-          </button>
-
-          {/* Map Layer Mode Toggle (Street Uber vs Satellite) */}
-          <button
-            type="button"
-            onClick={() => setMapTileMode(mapTileMode === 'osm_offline' ? 'satellite' : 'osm_offline')}
-            className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-[10.5px] font-black flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-2xs"
-          >
-            <Layers className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-slate-300" />
-            <span className="whitespace-nowrap">
-              {mapTileMode === 'osm_offline' ? 'Vue Rue' : 'Vue Satellite'}
-            </span>
-          </button>
-        </div>
-
-        {/* Coastal Sector Dropdown */}
-        <div className="w-full">
-          <ModernSelect
-            value={mapSectorFilter}
-            onChange={(val) => setMapSectorFilter(val)}
-            themeMode={themeMode}
-            searchable={true}
-            size="sm"
-            icon={<MapPin className="w-3.5 h-3.5 text-sky-500" />}
-            options={[
-              {
-                value: 'all',
-                label: 'Tous les secteurs littoraux',
-                subtitle: 'Littoral complet de Pointe-Noire',
-                badge: `${reports.length} points`,
-                badgeColor: 'blue',
-              },
-              ...POINTE_NOIRE_COASTAL_SITES.map((site) => ({
-                value: site.name,
-                label: site.name,
-                subtitle: `${site.sector} • ${site.turtleSpecies}`,
-                badge: site.threatLevel,
-                badgeColor: (site.threatLevel === 'CRITIQUE'
-                  ? 'red'
-                  : site.threatLevel === 'HAUTE'
-                  ? 'amber'
-                  : 'emerald') as ModernSelectOption['badgeColor'],
-              })),
-            ]}
-          />
-        </div>
+        <ModernSelect
+          value={mapSectorFilter}
+          onChange={(val) => setMapSectorFilter(val)}
+          themeMode={themeMode}
+          searchable={true}
+          size="sm"
+          icon={<MapPin className="w-4 h-4 text-sky-600" />}
+          options={[
+            {
+              value: 'all',
+              label: 'Tous les secteurs littoraux',
+              subtitle: 'Littoral complet de Pointe-Noire',
+              badge: `${reports.length} points`,
+              badgeColor: 'blue',
+            },
+            ...POINTE_NOIRE_COASTAL_SITES.map((site) => ({
+              value: site.name,
+              label: site.name,
+              subtitle: `${site.sector} • ${site.turtleSpecies}`,
+              badge: site.threatLevel,
+              badgeColor: (site.threatLevel === 'CRITIQUE'
+                ? 'red'
+                : site.threatLevel === 'HAUTE'
+                ? 'amber'
+                : 'emerald') as ModernSelectOption['badgeColor'],
+            })),
+          ]}
+        />
 
         {/* Category Filters Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10.5px] font-black">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
           <button
             type="button"
             onClick={() => setMapFilter('all')}
-            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'all'
-                ? 'bg-[#0A3D62] text-white shadow-xs font-black'
-                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 font-bold'
+                ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-medium shadow-xs'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-normal'
             }`}
           >
-            <span className="whitespace-nowrap">Tous ({reports.length})</span>
+            Tous ({reports.length})
           </button>
           <button
             type="button"
             onClick={() => setMapFilter('critical')}
-            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'critical'
-                ? 'bg-red-600 text-white shadow-xs font-black'
-                : 'bg-red-100 dark:bg-red-950 text-red-950 dark:text-red-100 border border-red-300 dark:border-red-800 font-bold'
+                ? 'bg-rose-600 text-white font-medium shadow-xs'
+                : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200 dark:border-rose-900 font-normal'
             }`}
           >
-            <span className="whitespace-nowrap">
-              Critiques ({reports.filter((r) => r.priorityLevel === 'CRITIQUE').length})
-            </span>
+            Critiques ({reports.filter((r) => r.priorityLevel === 'CRITIQUE').length})
           </button>
           <button
             type="button"
             onClick={() => setMapFilter('turtle_nest')}
-            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
               mapFilter === 'turtle_nest'
-                ? 'bg-amber-400 text-slate-950 shadow-xs font-black border border-amber-300'
-                : 'bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-100 border border-amber-300 dark:border-amber-800 font-bold'
+                ? 'bg-emerald-600 text-white font-medium shadow-xs'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-900 font-normal'
             }`}
           >
-            <TurtleIcon className="w-3.5 h-3.5 shrink-0 text-slate-950 dark:text-amber-300" />
-            <span className="whitespace-nowrap">
-              Nids ({reports.filter((r) => r.isNestingZone).length})
-            </span>
+            <TurtleIcon className="w-3.5 h-3.5 shrink-0" />
+            <span>Nids ({reports.filter((r) => r.isNestingZone).length})</span>
           </button>
           <button
             type="button"
             onClick={() => setMapFilter('collected')}
-            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'collected'
-                ? 'bg-emerald-600 text-white shadow-xs font-black'
-                : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-800 font-bold'
+                ? 'bg-teal-700 text-white font-medium shadow-xs'
+                : 'bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-900 font-normal'
             }`}
           >
-            <span className="whitespace-nowrap">
-              Collectés ({reports.filter((r) => r.status === 'collected' || r.status === 'validated').length})
-            </span>
+            Collectés ({reports.filter((r) => r.status === 'collected' || r.status === 'validated').length})
           </button>
         </div>
       </div>
 
-      {/* LEAFLET UBER-STYLE INTERACTIVE MAP CONTAINER */}
-      <div className="relative w-full h-[320px] rounded-3xl overflow-hidden border-2 border-slate-700 shadow-md bg-slate-900 isolate">
-        {/* The DOM element Leaflet attaches to */}
+      {/* 2. LEAFLET INTERACTIVE MAP */}
+      <div className="relative w-full h-[320px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-100 dark:bg-slate-900 isolate">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-        {/* Floating Top Uber Badges */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5 pointer-events-none">
-          {/* Anti-poaching status badge */}
-          {!isRangerVerified ? (
-            <div className="pointer-events-auto px-2 py-0.5 rounded-full bg-slate-900/90 border border-amber-500/40 text-amber-300 text-[8.5px] font-black flex items-center gap-1 backdrop-blur-xs shadow-md whitespace-nowrap">
-              <Lock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
-              <span>Brouillage Nids 800m Actif</span>
+        {/* Floating Uber-style Live Navigation HUD Banner when a waste point is targeted */}
+        {selectedMapPoint && (
+          <div className="absolute top-2.5 left-2.5 right-2.5 z-20 animate-in slide-in-from-top-2">
+            <div className="bg-slate-950/92 backdrop-blur-md text-white p-2 rounded-2xl border border-sky-400/40 shadow-xl flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <Navigation className="w-4 h-4 -rotate-45" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 leading-none">
+                    <span className="font-bold text-xs sm:text-sm text-sky-300">
+                      {hasArrived ? 'Sur le site' : distanceMeters >= 1000 ? `${(distanceMeters / 1000).toFixed(1)} km` : `${distanceMeters} m`}
+                    </span>
+                    <span className="text-[10px] text-slate-300">
+                      • {hasArrived ? 'Arrivé' : `~${etaMinutes} min`}
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-teal-100 font-normal truncate mt-0.5">
+                    {hasArrived ? 'Déchet localisé à portée de main' : `Vers ${selectedMapPoint.locationName.split('(')[0]}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {!hasArrived ? (
+                  <button
+                    type="button"
+                    onClick={() => setHasArrived(true)}
+                    className="h-7.5 px-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium text-[11px] shadow-sm flex items-center gap-1 cursor-pointer active:scale-95 transition-all whitespace-nowrap"
+                    title="Simuler l'arrivée du collecteur à moins de 15m"
+                  >
+                    <span>Simuler Arrivée</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleStartWeighing(selectedMapPoint)}
+                    className="h-7.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] shadow-sm flex items-center gap-1 cursor-pointer active:scale-95 transition-all whitespace-nowrap animate-pulse"
+                  >
+                    <Scale className="w-3 h-3 shrink-0" />
+                    <span>Peser</span>
+                  </button>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="pointer-events-auto px-2 py-0.5 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-[8.5px] font-black flex items-center gap-1 backdrop-blur-xs shadow-md whitespace-nowrap">
-              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
-              <span>GPS Sentinelle Certifié</span>
+          </div>
+        )}
+
+        {/* Floating Top-Right Mini Compass (shifted down if banner is active) */}
+        {!selectedMapPoint && (
+          <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
+            <div className="px-2.5 py-1 rounded-xl bg-slate-900/85 border border-slate-700/60 text-slate-200 text-xs font-normal backdrop-blur-xs shadow-md flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-sky-400" />
+              <span>Pointe-Noire</span>
             </div>
-          )}
-
-          {/* Active fleet indicator (Uber style) */}
-          <div className="pointer-events-auto px-2 py-0.5 rounded-full bg-slate-900/85 border border-slate-700 text-slate-200 text-[8.5px] font-black flex items-center gap-1.5 backdrop-blur-xs shadow-md whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Éco-Patrouille En Direct</span>
           </div>
-        </div>
+        )}
 
-        {/* Floating Top-Right Mini Info Pill */}
-        <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
-          <div className="px-2 py-1 rounded-xl bg-slate-950/85 border border-slate-700/60 text-slate-300 text-[9px] font-bold backdrop-blur-xs shadow-md flex items-center gap-1">
-            <Compass className="w-3 h-3 text-emerald-400" />
-            <span>Pointe-Noire</span>
-          </div>
-        </div>
-
-        {/* Floating Bottom-Right Uber Control Actions */}
-        <div className="absolute bottom-2.5 right-2.5 z-20 flex flex-col items-center gap-2">
-          {/* Recenter to Balanced Overview Button (Uber Target Crosshair) */}
+        {/* Floating Bottom-Right Map Controls */}
+        <div className="absolute bottom-2.5 right-2.5 z-20 flex flex-col items-center gap-1.5">
           <button
             type="button"
             onClick={handleResetOverview}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-blue-600 dark:text-sky-400 border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title="Vue d'ensemble côtière (Recentrer sans zoomer trop)"
+            className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
+            title="Recentrer"
           >
-            <Navigation className="w-4.5 h-4.5" />
+            <Navigation className="w-4 h-4 text-blue-600 dark:text-sky-400" />
           </button>
-
-          {/* Zoom In Button */}
           <button
             type="button"
             onClick={handleZoomIn}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-slate-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
             title="Zoomer"
           >
-            <Plus className="w-4.5 h-4.5" />
+            <Plus className="w-4 h-4" />
           </button>
-
-          {/* Zoom Out Button */}
           <button
             type="button"
             onClick={handleZoomOut}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-slate-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer active:scale-95"
             title="Dézoomer"
           >
-            <Minus className="w-4.5 h-4.5" />
+            <Minus className="w-4 h-4" />
           </button>
-        </div>
-
-        {/* Floating Bottom-Left Summary Banner */}
-        <div className="absolute bottom-2.5 left-2.5 z-20 pointer-events-none">
-          <div className="px-3 py-1.5 rounded-xl bg-black/90 border border-slate-700 text-xs text-white backdrop-blur-xs shadow-md flex items-center gap-2">
-            <span className="font-black text-white">
-              {filteredReports.length} Dépôts
-            </span>
-            <span className="text-slate-400">•</span>
-            <span className="text-emerald-400 font-bold">
-              Littoral Pointe-Noire
-            </span>
-          </div>
         </div>
 
         {/* Vehicle Info Floating Popup */}
         {showVehicleInfo && (
-          <div className="absolute top-12 left-2.5 right-12 z-30 p-3 rounded-2xl bg-black/95 border border-sky-500/50 text-white shadow-2xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute top-10 left-3 right-12 z-30 p-3 rounded-2xl bg-slate-950/95 border border-slate-700 text-white shadow-2xl backdrop-blur-sm animate-in fade-in duration-150">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-                  <Truck className="w-4 h-4" />
+                <div className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                  <Truck className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h5 className="font-black text-xs text-white leading-tight">
-                    Éco-Patrouille Renatura #1
+                  <h5 className="font-semibold text-xs text-white leading-tight">
+                    Éco-Patrouille Littorale #1
                   </h5>
-                  <span className="text-[10px] text-sky-300 font-bold">En intervention • Côte Sauvage</span>
+                  <span className="text-[11px] text-sky-300 font-normal">En intervention • Côte Sauvage</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowVehicleInfo(false)}
-                className="text-slate-200 hover:text-white p-1 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[11px] text-slate-200 mt-1.5 leading-relaxed font-medium">
-              Camion benne 3.5T en tournée de ramassage sur l'axe littoral. Vitesse : 22 km/h. 5 nids sécurisés aujourd'hui.
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed font-normal">
+              Camion benne en tournée sur l'axe littoral de Pointe-Noire.
             </p>
           </div>
         )}
       </div>
 
-      {/* Selected Hotspot Detailed Card */}
+      {/* 3. HORIZONTAL GALLERY OF LOADED PHOTOS */}
+      <div className="space-y-1.5 pt-1">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <Camera className="w-4 h-4 text-[#0052CC] dark:text-sky-400" />
+            <span className="text-xs font-semibold text-slate-900 dark:text-white">
+              Photos Chargées du Littoral ({filteredReports.length})
+            </span>
+          </div>
+          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+            Touchez pour agrandir
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+          {filteredReports.map((rep) => {
+            const isSelected = selectedMapPoint?.id === rep.id;
+            const photoSrc = rep.photoUrl || FALLBACK_PHOTO;
+
+            return (
+              <div
+                key={`gallery-${rep.id}`}
+                onClick={() => {
+                  setSelectedMapPoint(rep);
+                  setInspectingPhotoReport(rep);
+                  if (mapInstanceRef.current) {
+                    mapInstanceRef.current.panTo([rep.latitude, rep.longitude], { animate: true, duration: 0.4 });
+                  }
+                }}
+                className={`relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border cursor-pointer transition-all active:scale-95 group shadow-xs ${
+                  isSelected
+                    ? 'border-blue-600 ring-2 ring-blue-500/40 scale-102'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                }`}
+              >
+                <img
+                  src={photoSrc}
+                  alt={rep.locationName}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== FALLBACK_PHOTO) {
+                      target.src = FALLBACK_PHOTO;
+                    }
+                  }}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-between p-1.5">
+                  <div className="flex justify-end">
+                    <span
+                      className={`text-[9.5px] font-medium px-1.5 py-0.5 rounded-full text-white shadow-xs ${
+                        rep.priorityLevel === 'CRITIQUE'
+                          ? 'bg-rose-600'
+                          : rep.isNestingZone
+                          ? 'bg-emerald-600'
+                          : 'bg-amber-500'
+                      }`}
+                    >
+                      {rep.isNestingZone ? 'Nid' : rep.priorityLevel === 'CRITIQUE' ? 'Critique' : 'Déchet'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-medium text-white truncate leading-tight">
+                    {rep.locationName.split(' - ')[0] || rep.locationName}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. SELECTED HOTSPOT CARD */}
       {selectedMapPoint && (
         <div
-          className={`p-4 rounded-2xl border transition-all space-y-3 text-xs shadow-md ${
+          className={`p-3.5 rounded-2xl border transition-all space-y-3 text-xs shadow-sm ${
             isFixora
-              ? 'bg-white border-slate-300 text-slate-950'
-              : 'bg-[#161618] border-slate-700 text-white'
+              ? 'bg-white border-slate-200 text-slate-900'
+              : 'bg-[#161618] border-slate-800 text-white'
           }`}
         >
           {/* Card Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h4 className="font-black text-sm text-slate-950 dark:text-white truncate">
-                  {selectedMapPoint.locationName}
-                </h4>
-              </div>
-              <p className="text-xs text-slate-800 dark:text-slate-200 mt-0.5 font-mono font-bold truncate">
-                {isRangerVerified
-                  ? `GPS: ${selectedMapPoint.latitude.toFixed(4)}, ${selectedMapPoint.longitude.toFixed(4)}`
-                  : `Zone approximative (Rayon sécurisé 800m)`}
+              <h4 className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                {selectedMapPoint.locationName}
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal truncate">
+                {selectedMapPoint.wasteType.replace('_', ' ')} • {selectedMapPoint.estimatedWeightKg} kg estimés
               </p>
             </div>
 
             <span
-              className={`text-xs font-black px-3 py-1 rounded-full whitespace-nowrap shrink-0 shadow-xs ${
+              className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 shadow-2xs ${
                 selectedMapPoint.priorityLevel === 'CRITIQUE'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-amber-400 text-slate-950 border border-amber-500 font-black'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-amber-400 text-slate-950 border border-amber-500'
               }`}
             >
               Priorité : {selectedMapPoint.priorityScore} pts
             </span>
           </div>
 
-          {/* Turtle Threat Alert Box */}
+          {/* Photo Preview Box with Zoom */}
+          <div 
+            onClick={() => setInspectingPhotoReport(selectedMapPoint)}
+            className="relative w-full h-40 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 group cursor-pointer shadow-inner"
+          >
+            <img
+              src={selectedMapPoint.photoUrl || FALLBACK_PHOTO}
+              alt={selectedMapPoint.locationName}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== FALLBACK_PHOTO) {
+                  target.src = FALLBACK_PHOTO;
+                }
+              }}
+              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 flex flex-col justify-between p-2.5">
+              <div className="flex items-center justify-between">
+                <span className="px-2 py-0.5 rounded-md bg-black/70 text-white text-xs font-normal backdrop-blur-xs border border-white/20 flex items-center gap-1">
+                  <Camera className="w-3 h-3 text-amber-400" />
+                  <span>Photo terrain</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-xs font-medium shadow-xs">
+                  {selectedMapPoint.status === 'collected' ? 'Collecté' : 'En attente'}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-white/90 font-normal truncate max-w-[70%]">
+                  {selectedMapPoint.description || 'Déchets signalés sur le littoral'}
+                </p>
+                <div className="h-7 px-2.5 rounded-lg bg-white/95 text-slate-900 font-medium text-xs flex items-center gap-1 shadow-md group-hover:bg-amber-300 transition-colors">
+                  <Eye className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Aperçu</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Turtle Threat Notice if present */}
           {selectedMapPoint.turtleDangerLevel && (
-            <div className="bg-rose-100 dark:bg-rose-950 border border-rose-300 dark:border-rose-700 p-3 rounded-xl flex items-center gap-2.5 text-xs text-rose-950 dark:text-rose-100 font-bold shadow-xs">
-              <AlertTriangle className="w-4.5 h-4.5 text-rose-700 dark:text-rose-300 shrink-0" />
+            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 p-2.5 rounded-xl flex items-center gap-2 text-xs text-rose-900 dark:text-rose-200 font-normal">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
               <div className="min-w-0">
-                <span className="font-black block whitespace-nowrap">Danger Tortue Marine :</span>
-                <span className="truncate block font-bold">{selectedMapPoint.turtleDangerLevel}</span>
+                <span className="font-semibold block">Menace Nids & Tortues :</span>
+                <span className="truncate block">{selectedMapPoint.turtleDangerLevel}</span>
               </div>
             </div>
           )}
 
-          {/* Characteristics Details */}
-          <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
-            <div className="bg-slate-100 dark:bg-black p-3 rounded-xl min-w-0 border border-slate-300 dark:border-slate-700">
-              <span className="text-[11px] font-black text-slate-900 dark:text-slate-200 block uppercase whitespace-nowrap">Type de Déchet</span>
-              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap text-xs sm:text-sm mt-0.5">
-                {selectedMapPoint.wasteType.replace('_', ' ')}
-              </span>
-            </div>
-            <div className="bg-slate-100 dark:bg-black p-3 rounded-xl min-w-0 border border-slate-300 dark:border-slate-700">
-              <span className="text-[11px] font-black text-slate-900 dark:text-slate-200 block uppercase whitespace-nowrap">Gabarit Visuel</span>
-              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap text-xs sm:text-sm mt-0.5">
-                {selectedMapPoint.estimatedVolume}
-              </span>
-            </div>
+          {/* Action Button */}
+          <div className="pt-1 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleStartWeighing(selectedMapPoint)}
+              className="flex-1 h-11 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            >
+              <Scale className="w-4 h-4 text-white shrink-0" />
+              <span>Démarrer la Pesée & Collecte</span>
+            </button>
           </div>
+        </div>
+      )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-300 dark:border-slate-700">
-            {isRangerVerified && selectedMapPoint.status === 'reported' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handleRejectReport(selectedMapPoint.id)}
-                  className="flex-1 h-12 rounded-xl border border-rose-300 text-rose-950 dark:text-rose-100 bg-rose-100 dark:bg-rose-950/70 font-black text-xs sm:text-sm hover:bg-rose-200 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  <span className="whitespace-nowrap">Rejeter</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleApproveReport(selectedMapPoint.id)}
-                  className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span className="whitespace-nowrap">Valider Hotspot</span>
-                </button>
-              </>
-            ) : (
+      {/* 5. FULL PHOTO INSPECTION MODAL */}
+      {inspectingPhotoReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-sm flex flex-col bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden text-slate-900 dark:text-white">
+            {/* Modal Header */}
+            <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                  {inspectingPhotoReport.locationName}
+                </h3>
+                <p className="text-xs font-normal text-slate-500 dark:text-slate-400 truncate">
+                  Photo {activePhotoIndex + 1} sur {filteredReports.length}
+                </p>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setMobileScreen('tour')}
-                className="w-full h-12 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                onClick={() => {
+                  setInspectingPhotoReport(null);
+                  setPhotoZoomLevel(1);
+                }}
+                className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
               >
-                <span className="whitespace-nowrap">Programmer la Collecte & Pesée</span>
-                <ArrowRight className="w-4 h-4 text-white shrink-0" />
+                <X className="w-4 h-4" />
               </button>
-            )}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-3.5 space-y-3">
+              <div className="relative w-full rounded-2xl overflow-hidden bg-black aspect-4/3 flex items-center justify-center">
+                <img
+                  src={inspectingPhotoReport.photoUrl || FALLBACK_PHOTO}
+                  alt={inspectingPhotoReport.locationName}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== FALLBACK_PHOTO) {
+                      target.src = FALLBACK_PHOTO;
+                    }
+                  }}
+                  className={`w-full h-full object-cover transition-transform duration-300 ${
+                    photoZoomLevel === 2 ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
+                  }`}
+                  onClick={() => setPhotoZoomLevel(photoZoomLevel === 1 ? 2 : 1)}
+                />
+
+                <button
+                  type="button"
+                  onClick={handlePrevPhoto}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center shadow-md cursor-pointer active:scale-95"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextPhoto}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center shadow-md cursor-pointer active:scale-95"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs font-normal text-slate-600 dark:text-slate-300 leading-relaxed">
+                {inspectingPhotoReport.description || "Déchets plastiques signalés sur le littoral."}
+              </p>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50 dark:bg-slate-950">
+              <button
+                type="button"
+                onClick={() => {
+                  setInspectingPhotoReport(null);
+                  handleStartWeighing(inspectingPhotoReport);
+                }}
+                className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Scale className="w-3.5 h-3.5" />
+                <span>Planifier Pesée</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. UBER-STYLE PROXIMITY ARRIVAL NOTIFICATION MODAL */}
+      {hasArrived && selectedMapPoint && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-full max-w-sm rounded-3xl bg-white border border-slate-200 text-slate-900 shadow-2xl p-4 space-y-3.5 animate-in zoom-in-95">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shrink-0">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-700 block">
+                    Guidage GPS Terminé • Arrivée Détectée
+                  </span>
+                  <h3 className="font-bold text-base text-slate-900 leading-tight">
+                    Vous êtes arrivé sur le site !
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHasArrived(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Fermer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Site Detail & Proximity Confirmation */}
+            <div className="p-3 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-xs space-y-1.5">
+              <div className="flex items-center justify-between text-slate-900 font-semibold">
+                <span className="truncate">{selectedMapPoint.locationName}</span>
+                <span className="text-emerald-700 font-mono font-bold text-[11px] whitespace-nowrap bg-emerald-100 px-2 py-0.5 rounded-md">
+                  &lt; 15 m
+                </span>
+              </div>
+              <p className="text-slate-700 font-normal leading-relaxed text-[11.5px]">
+                Le capteur GPS confirme votre présence exacte sur la plage. Les déchets ({selectedMapPoint.wasteType.replace('_', ' ')} - est. {selectedMapPoint.estimatedWeightKg} kg) sont à portée immédiate.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleStartWeighing(selectedMapPoint)}
+                className="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap"
+              >
+                <Scale className="w-4 h-4" />
+                <span>Commencer la Pesée Immédiate</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setHasArrived(false)}
+                className="w-full h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors cursor-pointer"
+              >
+                Rester sur la carte
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { WasteReport, CollectionTour, WasteLot, RecyclerPartner, MassekoKPIs, UserProfile } from '../types/koba';
+import { WasteReport, CollectionTour, WasteLot, RecyclerPartner, MassekoKPIs, UserProfile, UserCategory, UserCategoryDefinition } from '../types/koba';
 
 export const mockReports: WasteReport[] = [
   {
@@ -216,7 +216,7 @@ export const POINTE_NOIRE_COASTAL_SITES: RealCoastalSite[] = [
     turtleSpecies: 'Tortue Luth (Dermochelys coriacea)',
     isNestingZone: true,
     threatLevel: 'CRITIQUE',
-    description: 'Bande d’estran sableux de 6 km, principale zone de ponte des Tortues Luth à Pointe-Noire sous suivi Renatura Congo.'
+    description: 'Bande d’estran sableux de 6 km, principale zone de ponte des Tortues Luth à Pointe-Noire sous suivi des éco-gardes locaux.'
   },
   {
     id: 'site-cote-sauvage-pyramide',
@@ -503,7 +503,7 @@ export const REAL_IMPACT_CAMPAIGNS: RealImpactCampaign[] = [
   {
     id: 'camp-2026-ponte',
     title: 'Saison de Ponte 2026 : Zéro Plastique sur les Nids Luth',
-    partner: 'Renatura Congo & WWF Afrique Centrale',
+    partner: 'Collectif Littoral & Éco-Gardes Côtiers',
     season: 'Octobre 2025 – Avril 2026',
     targetObjectiveKg: 5000,
     actualAchievedKg: 3840
@@ -519,7 +519,7 @@ export const REAL_IMPACT_CAMPAIGNS: RealImpactCampaign[] = [
   {
     id: 'camp-2025-songolo',
     title: 'Campagne Estuaire Propre Songolo-Tchinouka',
-    partner: 'Union Européenne (Programme Environnement Littoral)',
+    partner: 'Programme Régional Environnement & Littoral',
     season: 'Septembre – Décembre 2025',
     targetObjectiveKg: 3000,
     actualAchievedKg: 3120
@@ -561,6 +561,97 @@ export const POINTE_NOIRE_NEIGHBORHOODS: string[] = [
   'Pointe-Indienne & Kouilou',
 ];
 
+export const USER_CATEGORIES_DEFINITIONS: UserCategoryDefinition[] = [
+  {
+    id: 'student',
+    label: 'Élève / Étudiant (Lycée, Université)',
+    shortLabel: 'Étudiant / Élève',
+    badge: '🎓 Scolaire & Universitaire',
+    iconName: 'GraduationCap',
+    description: 'Jeunesse scolarisée ou universitaire participant aux challenges inter-établissements et sorties éducatives.',
+    analysisUtility: 'Mesure la pénétration de l’éducation environnementale, le taux de mobilisation de la jeunesse et l’impact des défis scolaires.',
+    organizationLabel: 'Établissement scolaire ou universitaire',
+    organizationPlaceholder: 'Ex: Lycée Victor Augagneur, EST-Littoral, Univ. Marien Ngouabi...',
+  },
+  {
+    id: 'coastal_pro',
+    label: 'Professionnel du Littoral / Entreprise / Tourisme',
+    shortLabel: 'Professionnel / Entreprise',
+    badge: '💼 Professionnel Littoral',
+    iconName: 'Briefcase',
+    description: 'Gérant ou employé d’hôtel, restaurant de plage, club nautique, entreprise portuaire ou mécène RSE.',
+    analysisUtility: 'Évalue la responsabilité sociétale (RSE) des commerces côtiers et la propreté des concessions privées et hôtelières.',
+    organizationLabel: 'Entreprise, hôtel ou établissement',
+    organizationPlaceholder: 'Ex: Hôtel Palm Beach, Restaurant Côte Sauvage, Bolloré/Congo Terminal...',
+  },
+  {
+    id: 'fisherman',
+    label: 'Pêcheur Artisanal / Mareyeur / Travailleur de la Mer',
+    shortLabel: 'Pêcheur Artisanal',
+    badge: '⚓ Travailleur de la Mer',
+    iconName: 'Anchor',
+    description: 'Pêcheurs côtiers en pirogue, mareyeurs et débarqueurs des sites de Songolo, Mpita et Djeno.',
+    analysisUtility: 'Indicateur clé pour cartographier les filets fantômes dérivants, les captures accidentelles de tortues et les débris plastiques en mer.',
+    organizationLabel: 'Port d’attache ou coopérative de pêche',
+    organizationPlaceholder: 'Ex: Coopérative des Pêcheurs de Songolo, Débarcadère Port...',
+  },
+  {
+    id: 'association_member',
+    label: 'Membre ONG / Association Environnementale',
+    shortLabel: 'Membre ONG / Écolo',
+    badge: '🌱 ONG & Société Civile',
+    iconName: 'HeartHandshake',
+    description: 'Volontaires et permanents d’organisations de conservation (Renatura, associations locales de jeunesse).',
+    analysisUtility: 'Quantifie le relais bénévole sur le terrain, la fiabilité des signalements et la couverture des patrouilles citoyennes.',
+    organizationLabel: 'Nom de l’association ou ONG',
+    organizationPlaceholder: 'Ex: Renatura Congo, Sentinelles du Littoral, Jeunesse Verte...',
+  },
+  {
+    id: 'citizen',
+    label: 'Citoyen & Résident Sentinelle',
+    shortLabel: 'Citoyen Sentinelle',
+    badge: '👤 Citoyen Sentinelle',
+    iconName: 'User',
+    description: 'Habitant des arrondissements de Pointe-Noire, promeneur régulier, famille profitant de la plage le weekend.',
+    analysisUtility: 'Reflète la veille citoyenne spontanée, la propreté perçue des plages et l’appropriation publique du littoral.',
+    organizationLabel: 'Quartier ou groupe citoyen (optionnel)',
+    organizationPlaceholder: 'Ex: Collectif Citoyen Côte Sauvage...',
+  },
+  {
+    id: 'municipal_agent',
+    label: 'Agent Municipal / Salubrité Urbaine & Voirie',
+    shortLabel: 'Agent Municipal / Collecteur',
+    badge: '🚜 Brigade Salubrité',
+    iconName: 'ShieldAlert',
+    description: 'Personnel de la Mairie de Pointe-Noire, conducteurs de tricycles de voirie et agents d’hygiène publique.',
+    analysisUtility: 'Permet d’analyser les délais de ramassage opérationnel, les tonnages évacués et les points noirs récurrents.',
+    organizationLabel: 'Arrondissement / Direction Municipale',
+    organizationPlaceholder: 'Ex: Direction Environnement & Salubrité Mairie Centrale...',
+  },
+  {
+    id: 'scientist',
+    label: 'Scientifique / Chercheur en Biologie Marine',
+    shortLabel: 'Scientifique / Biologiste',
+    badge: '🔬 Chercheur Marin',
+    iconName: 'Compass',
+    description: 'Universitaires, chercheurs en écologie marine, experts de la faune littorale et des tortues marines.',
+    analysisUtility: 'Corrèle la présence des dépôts d’ordures avec les sites de ponte des tortues Luth & Olivier et la mortalité marine.',
+    organizationLabel: 'Institut de recherche ou laboratoire',
+    organizationPlaceholder: 'Ex: Centre de Recherches Océanographiques (CRO), IRSEN...',
+  },
+  {
+    id: 'recycler',
+    label: 'Industriel / Recycleur & Transformateur Plastique',
+    shortLabel: 'Recycleur Plastique',
+    badge: '♻️ Recycleur & Usine',
+    iconName: 'Factory',
+    description: 'Usines de broyage, transformateurs locaux de PET/PEHD et collecteurs industriels pour valorisation circulaire.',
+    analysisUtility: 'Fournit la traçabilité de l’économie circulaire : taux de recyclage effectif, volume de balles broyées et valorisées.',
+    organizationLabel: 'Usine ou atelier de recyclage',
+    organizationPlaceholder: 'Ex: Congo Recyclage Plastique, Plast-Eco Pointe-Noire...',
+  },
+];
+
 export const MOCK_USERS: UserProfile[] = [
   {
     id: 'user-001',
@@ -568,6 +659,8 @@ export const MOCK_USERS: UserProfile[] = [
     email: 'jean.marc@masseko-congo.org',
     phone: '+242 06 812 34 56',
     role: 'citizen',
+    category: 'citizen',
+    organizationOrSchool: 'Sentinelles Bénévoles Côte Sauvage',
     neighborhood: 'Côte Sauvage (Sanctuaire)',
     points: 380,
     levelName: 'Sentinelle Littoral Or',
@@ -579,6 +672,8 @@ export const MOCK_USERS: UserProfile[] = [
     email: 'jb.mabiala@masseko-collecte.cg',
     phone: '+242 06 910 20 30',
     role: 'collector',
+    category: 'municipal_agent',
+    organizationOrSchool: 'Brigade Littorale Tricycle #3',
     neighborhood: 'Songolo & Estuaire',
     points: 520,
     levelName: 'Capitaine de Tournée Homologué',
@@ -590,6 +685,8 @@ export const MOCK_USERS: UserProfile[] = [
     email: 'patrick.moukala@pecheurs-songolo.cg',
     phone: '+242 05 520 40 60',
     role: 'fisherman',
+    category: 'fisherman',
+    organizationOrSchool: 'Coopérative Artisanale de Songolo',
     neighborhood: 'Mpita & Port de Pêche',
     points: 410,
     levelName: 'Éco-Pêcheur & Gardien des Mers',
@@ -601,23 +698,41 @@ export const MOCK_USERS: UserProfile[] = [
     email: 'sylvie.tchicaya@lycee-victor-augagneur.cg',
     phone: '+242 06 444 88 99',
     role: 'school',
-    neighborhood: 'Lumumba (Centre-Ville)',
+    category: 'student',
     schoolName: 'Lycée Victor Augagneur',
+    organizationOrSchool: 'Lycée Victor Augagneur (Club Éco)',
+    neighborhood: 'Lumumba (Centre-Ville)',
     points: 680,
     levelName: 'Ambassadrice Challenge Jeunesse',
     avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
   },
   {
     id: 'user-005',
-    fullName: 'Gervais Loembe',
-    email: 'gervais.loembe@renatura-congo.org',
+    fullName: 'Dr. Gervais Loembe',
+    email: 'gervais.loembe@masseko-congo.org',
     phone: '+242 06 700 80 90',
     role: 'admin',
+    category: 'scientist',
+    organizationOrSchool: 'Centre Océanographique & Renatura',
     neighborhood: 'Djeno (Frayère Luth)',
     points: 950,
-    levelName: 'Superviseur Éco-Gardes Renatura',
+    levelName: 'Chercheur en Écologie Marine',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+  },
+  {
+    id: 'user-006',
+    fullName: 'Arnaud Koumba',
+    email: 'a.koumba@palmbeach-hotel.cg',
+    phone: '+242 05 600 11 22',
+    role: 'citizen',
+    category: 'coastal_pro',
+    organizationOrSchool: 'Hôtel Palm Beach Côte Sauvage (RSE)',
+    neighborhood: 'Côte Sauvage (Sanctuaire)',
+    points: 290,
+    levelName: 'Partenaire Hôtelier Éco-Responsable',
+    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80',
   }
 ];
+
 
 
