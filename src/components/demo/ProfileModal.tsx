@@ -28,6 +28,7 @@ interface ProfileModalProps {
   onSwitchUser: (user: UserProfile) => void;
   setMobileScreen: (screen: DemoScreen) => void;
   themeMode: 'forest' | 'fixora';
+  onOpenTechnicalDocs?: () => void;
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
@@ -38,6 +39,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onSwitchUser,
   setMobileScreen,
   themeMode,
+  onOpenTechnicalDocs,
 }) => {
   if (!isOpen) return null;
 
@@ -202,6 +204,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Se Déconnecter</span>
+            </button>
+          )}
+
+          {onOpenTechnicalDocs && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenTechnicalDocs();
+              }}
+              className="w-full py-1.5 text-center text-[10.5px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors pt-1 cursor-pointer"
+            >
+              ⚙️ Spécifications Techniques & Schéma SQL (Pour Développeurs)
             </button>
           )}
         </div>
