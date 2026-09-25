@@ -15,7 +15,6 @@ import { MobileTopBar } from './components/demo/MobileTopBar';
 import { MobileBottomNav, DemoScreen } from './components/demo/MobileBottomNav';
 import { DonorExportModal } from './components/demo/DonorExportModal';
 import { ProfileModal } from './components/demo/ProfileModal';
-import { TechnicalDocsModal } from './components/TechnicalDocsModal';
 
 // Mobile Screens
 import { OnboardingScreen } from './components/demo/screens/OnboardingScreen';
@@ -38,7 +37,6 @@ export default function App() {
   // User Session & Modals State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(MOCK_USERS[0]);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
-  const [showTechnicalDocsModal, setShowTechnicalDocsModal] = useState<boolean>(false);
   const [showDonorExportModal, setShowDonorExportModal] = useState<boolean>(false);
   const [selectedDonorTemplate, setSelectedDonorTemplate] = useState<string>('ffem');
 
@@ -261,32 +259,36 @@ export default function App() {
 
   const pendingCount = reports.filter((r) => r.syncState === 'pending').length;
 
+  // Render Splash Screen directly at root level so it is 100% full-screen without any frame or rounded border
+  if (showSplashScreen) {
+    return <SplashScreen onFinish={() => setShowSplashScreen(false)} />;
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 flex justify-center text-slate-900 font-sans selection:bg-emerald-500 selection:text-white">
+    <div className={`min-h-screen flex justify-center text-slate-950 font-sans selection:bg-blue-600 selection:text-white transition-colors ${
+      themeMode === 'fixora' ? 'bg-[#E5E5EA]' : 'bg-[#000000]'
+    }`}>
       {/* Mobile App Standalone Frame (100% full screen on mobile, max-w-md on desktop) */}
       <div
-        className={`w-full min-h-screen sm:max-w-md flex flex-col justify-between overflow-hidden relative isolate shadow-2xl transition-colors ${
-          themeMode === 'fixora' ? 'bg-[#F8FAFC]' : 'bg-[#0B131F]'
+        className={`w-full min-h-screen sm:max-w-md flex flex-col justify-between overflow-hidden relative isolate sm:shadow-2xl transition-colors sm:border-x ${
+          themeMode === 'fixora'
+            ? 'bg-[#F2F2F7] sm:border-slate-300 text-slate-950'
+            : 'bg-[#000000] sm:border-slate-800 text-white'
         }`}
       >
-        {/* Animated Mobile Splash Screen */}
-        {showSplashScreen ? (
-          <SplashScreen onFinish={() => setShowSplashScreen(false)} />
-        ) : (
-          <>
-            {/* Top Bar (Status bar, network, theme toggle, user profile, PWA install) */}
-            <MobileTopBar
-              isOnline={isOnline}
-              setIsOnline={setIsOnline}
-              syncPendingReports={syncPendingReports}
-              themeMode={themeMode}
-              setThemeMode={setThemeMode}
-              pendingSyncCount={pendingCount}
-              currentUser={currentUser}
-              onOpenProfile={() => setShowProfileModal(true)}
-              onOpenAuth={() => setMobileScreen('auth')}
-              onOpenEducation={() => setMobileScreen('education')}
-            />
+        {/* Top Bar (Status bar, network, theme toggle, user profile, PWA install) */}
+        <MobileTopBar
+          isOnline={isOnline}
+          setIsOnline={setIsOnline}
+          syncPendingReports={syncPendingReports}
+          themeMode={themeMode}
+          setThemeMode={setThemeMode}
+          pendingSyncCount={pendingCount}
+          currentUser={currentUser}
+          onOpenProfile={() => setShowProfileModal(true)}
+          onOpenAuth={() => setMobileScreen('auth')}
+          onOpenEducation={() => setMobileScreen('education')}
+        />
 
             {/* Scrollable Main Viewport for Active Screen */}
             <div className="flex-1 overflow-y-auto px-3.5 py-2.5 scrollbar-thin">
@@ -444,8 +446,6 @@ export default function App() {
               setMobileScreen={setMobileScreen}
               themeMode={themeMode}
             />
-          </>
-        )}
       </div>
 
       {/* User Profile & Persona Switcher Modal */}
@@ -457,7 +457,6 @@ export default function App() {
         onSwitchUser={(newUser) => setCurrentUser(newUser)}
         setMobileScreen={setMobileScreen}
         themeMode={themeMode}
-        onOpenTechnicalDocs={() => setShowTechnicalDocsModal(true)}
       />
 
       {/* Official Donor Export Modal */}
@@ -468,12 +467,6 @@ export default function App() {
         selectedDonorTemplate={selectedDonorTemplate}
         setSelectedDonorTemplate={setSelectedDonorTemplate}
         handleDownloadDonorCSV={handleDownloadDonorCSV}
-      />
-
-      {/* Technical Architecture & Database Schema Modal (For Developers & Audits) */}
-      <TechnicalDocsModal
-        isOpen={showTechnicalDocsModal}
-        onClose={() => setShowTechnicalDocsModal(false)}
       />
     </div>
   );

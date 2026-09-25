@@ -49,10 +49,26 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 0.98, filter: 'blur(6px)' }}
+          exit={{ opacity: 0, filter: 'blur(6px)' }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           onClick={handleTapToSkip}
-          className="absolute inset-0 z-50 flex flex-col justify-between p-7 bg-[#061B29] text-white rounded-[40px] overflow-hidden select-none cursor-pointer"
+          className="fixed inset-0 z-[99999] flex flex-col justify-between p-7 bg-[#061B29] text-white rounded-none border-0 m-0 overflow-hidden select-none cursor-pointer w-screen h-screen"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            maxWidth: '100vw',
+            maxHeight: '100vh',
+            margin: 0,
+            borderRadius: 0,
+            border: 'none',
+            outline: 'none',
+            boxShadow: 'none',
+          }}
         >
           {/* Subtle Ambient Background Halo */}
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />

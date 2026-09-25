@@ -47,16 +47,16 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-[#0A3D62] text-white p-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-700 to-blue-800 text-white p-5 flex items-center justify-between border-b border-blue-600">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#1BA9C5]/20 border border-[#1BA9C5]/40 flex items-center justify-center text-[#1BA9C5]">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center text-white">
               <FileText className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-black text-sm tracking-wide text-white">
                 Rapport d'Audit & Certification Bailleurs
               </h3>
-              <p className="text-[11px] text-slate-300">
+              <p className="text-[11px] text-blue-100 font-bold">
                 Génération des fiches de justification certifiées Masseko
               </p>
             </div>
@@ -102,56 +102,56 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
 
           {/* Aggregated KPI Summary Grid */}
           <div className="grid grid-cols-3 gap-2.5">
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-center">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
+              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
                 Poids Certifié
               </span>
-              <span className="font-black text-sm text-emerald-700 dark:text-emerald-300 block mt-0.5">
+              <span className="font-black text-sm text-emerald-800 dark:text-emerald-300 block mt-0.5">
                 {totalCertifiedKg.toFixed(1)} kg
               </span>
-              <span className="text-[9px] text-slate-400">Balance homologuée</span>
+              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Balance homologuée</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-center">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
+              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
                 CO2 Évité
               </span>
-              <span className="font-black text-sm text-blue-700 dark:text-blue-300 block mt-0.5">
+              <span className="font-black text-sm text-blue-800 dark:text-blue-300 block mt-0.5">
                 {totalCo2SavedKg} kg
               </span>
-              <span className="text-[9px] text-slate-400">Facteur 2.5 kg/kg</span>
+              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Facteur 2.5 kg/kg</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-center">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-center">
+              <span className="text-[10.5px] font-black text-slate-900 dark:text-slate-100 uppercase block">
                 Nids Protégés
               </span>
-              <span className="font-black text-sm text-amber-700 dark:text-amber-300 block mt-0.5">
+              <span className="font-black text-sm text-amber-950 dark:text-amber-100 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-lg border border-amber-300 block mt-0.5">
                 {totalNestsProtected} nids
               </span>
-              <span className="text-[9px] text-slate-400">Rayon sécurisé</span>
+              <span className="text-[9.5px] text-slate-700 dark:text-slate-300 font-bold">Rayon sécurisé</span>
             </div>
           </div>
 
           {/* Traceability Guarantee Stamp */}
-          <div className="p-3 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between text-[11px]">
+          <div className="p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between text-[11px]">
             <div className="flex items-center gap-2">
               <TurtleIcon className="w-5 h-5 text-emerald-600" />
-              <span>
-                <strong>Empreinte Cryptographique :</strong> QR Passport MASSEKO-SHA256
+              <span className="text-slate-900 dark:text-white">
+                <strong className="font-black">Empreinte Cryptographique :</strong> QR Passport MASSEKO-SHA256
               </span>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 text-[10px] font-black border border-emerald-300">
               Conforme ISO 14044
             </span>
           </div>
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5">
+        <div className="p-4 bg-slate-100 dark:bg-slate-800/80 border-t border-slate-300 dark:border-slate-700 flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-black text-xs hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
             Fermer
           </button>
@@ -161,9 +161,9 @@ export const DonorExportModal: React.FC<DonorExportModalProps> = ({
               handleDownloadDonorCSV();
               onClose();
             }}
-            className="px-4 py-2.5 rounded-xl bg-[#0A3D62] hover:bg-[#082e4b] text-white font-extrabold text-xs shadow-md flex items-center gap-2 transition-all"
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 text-[#1BA9C5]" />
+            <Download className="w-4 h-4 text-white" />
             <span>Télécharger CSV Officiel</span>
           </button>
         </div>

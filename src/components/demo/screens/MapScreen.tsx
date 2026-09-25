@@ -366,7 +366,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               </>
             ) : (
               <>
-                <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <Lock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-300 shrink-0" />
                 <span className="whitespace-nowrap">Vue Publique (Floutage 800m)</span>
               </>
             )}
@@ -422,10 +422,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('all')}
-            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'all'
-                ? 'bg-[#0A3D62] text-white shadow-xs'
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
+                ? 'bg-[#0A3D62] text-white shadow-xs font-black'
+                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 font-bold'
             }`}
           >
             <span className="whitespace-nowrap">Tous ({reports.length})</span>
@@ -433,10 +433,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('critical')}
-            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'critical'
-                ? 'bg-red-600 text-white shadow-xs'
-                : 'bg-red-100 dark:bg-red-950/70 text-red-900 dark:text-red-200 border border-red-300 dark:border-red-800'
+                ? 'bg-red-600 text-white shadow-xs font-black'
+                : 'bg-red-100 dark:bg-red-950 text-red-950 dark:text-red-100 border border-red-300 dark:border-red-800 font-bold'
             }`}
           >
             <span className="whitespace-nowrap">
@@ -446,13 +446,13 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('turtle_nest')}
-            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
               mapFilter === 'turtle_nest'
-                ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                : 'bg-amber-100 dark:bg-amber-950/70 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800 font-bold'
+                ? 'bg-amber-400 text-slate-950 shadow-xs font-black border border-amber-300'
+                : 'bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-100 border border-amber-300 dark:border-amber-800 font-bold'
             }`}
           >
-            <TurtleIcon className="w-3.5 h-3.5 shrink-0" />
+            <TurtleIcon className="w-3.5 h-3.5 shrink-0 text-slate-950 dark:text-amber-300" />
             <span className="whitespace-nowrap">
               Nids ({reports.filter((r) => r.isNestingZone).length})
             </span>
@@ -460,10 +460,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('collected')}
-            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
+            className={`px-3 py-1.5 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'collected'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800'
+                ? 'bg-emerald-600 text-white shadow-xs font-black'
+                : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-800 font-bold'
             }`}
           >
             <span className="whitespace-nowrap">
@@ -509,75 +509,75 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         </div>
 
         {/* Floating Bottom-Right Uber Control Actions */}
-        <div className="absolute bottom-2.5 right-2.5 z-20 flex flex-col items-center gap-1.5">
+        <div className="absolute bottom-2.5 right-2.5 z-20 flex flex-col items-center gap-2">
           {/* Recenter to Balanced Overview Button (Uber Target Crosshair) */}
           <button
             type="button"
             onClick={handleResetOverview}
-            className="w-8 h-8 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-slate-700/80 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-blue-600 dark:text-sky-400 border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="Vue d'ensemble côtière (Recentrer sans zoomer trop)"
           >
-            <Navigation className="w-4 h-4 text-emerald-400" />
+            <Navigation className="w-4.5 h-4.5" />
           </button>
 
           {/* Zoom In Button */}
           <button
             type="button"
             onClick={handleZoomIn}
-            className="w-8 h-8 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-slate-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="Zoomer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4.5 h-4.5" />
           </button>
 
           {/* Zoom Out Button */}
           <button
             type="button"
             onClick={handleZoomOut}
-            className="w-8 h-8 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#161618] hover:bg-slate-100 text-slate-950 dark:text-white border border-slate-300 dark:border-slate-700 shadow-md flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="Dézoomer"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Floating Bottom-Left Summary Banner */}
         <div className="absolute bottom-2.5 left-2.5 z-20 pointer-events-none">
-          <div className="px-2.5 py-1 rounded-xl bg-slate-950/85 border border-slate-700/70 text-[9px] text-slate-300 backdrop-blur-xs shadow-md flex items-center gap-2">
-            <span className="font-extrabold text-white">
+          <div className="px-3 py-1.5 rounded-xl bg-black/90 border border-slate-700 text-xs text-white backdrop-blur-xs shadow-md flex items-center gap-2">
+            <span className="font-black text-white">
               {filteredReports.length} Dépôts
             </span>
-            <span className="text-slate-500">•</span>
-            <span className="text-emerald-400 font-mono text-[8.5px]">
-              Vue Éco-Littorale
+            <span className="text-slate-400">•</span>
+            <span className="text-emerald-400 font-bold">
+              Littoral Pointe-Noire
             </span>
           </div>
         </div>
 
         {/* Vehicle Info Floating Popup */}
         {showVehicleInfo && (
-          <div className="absolute top-12 left-2.5 right-12 z-30 p-2.5 rounded-2xl bg-slate-950/95 border border-sky-500/50 text-white shadow-2xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute top-12 left-2.5 right-12 z-30 p-3 rounded-2xl bg-black/95 border border-sky-500/50 text-white shadow-2xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-                  <Truck className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                  <Truck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h5 className="font-black text-[11px] text-white leading-tight">
+                  <h5 className="font-black text-xs text-white leading-tight">
                     Éco-Patrouille Renatura #1
                   </h5>
-                  <span className="text-[9px] text-sky-300">En intervention • Côte Sauvage</span>
+                  <span className="text-[10px] text-sky-300 font-bold">En intervention • Côte Sauvage</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowVehicleInfo(false)}
-                className="text-slate-400 hover:text-white p-0.5 cursor-pointer"
+                className="text-slate-200 hover:text-white p-1 cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[9.5px] text-slate-300 mt-1 leading-relaxed">
+            <p className="text-[11px] text-slate-200 mt-1.5 leading-relaxed font-medium">
               Camion benne 3.5T en tournée de ramassage sur l'axe littoral. Vitesse : 22 km/h. 5 nids sécurisés aujourd'hui.
             </p>
           </div>
@@ -587,21 +587,21 @@ export const MapScreen: React.FC<MapScreenProps> = ({
       {/* Selected Hotspot Detailed Card */}
       {selectedMapPoint && (
         <div
-          className={`p-3.5 rounded-2xl border transition-all space-y-2.5 text-xs ${
+          className={`p-4 rounded-2xl border transition-all space-y-3 text-xs shadow-md ${
             isFixora
-              ? 'bg-white border-slate-300 text-slate-900 shadow-md'
-              : 'bg-slate-900 border-slate-700 text-white shadow-md'
+              ? 'bg-white border-slate-300 text-slate-950'
+              : 'bg-[#161618] border-slate-700 text-white'
           }`}
         >
           {/* Card Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h4 className="font-black text-xs text-slate-950 dark:text-white truncate">
+                <h4 className="font-black text-sm text-slate-950 dark:text-white truncate">
                   {selectedMapPoint.locationName}
                 </h4>
               </div>
-              <p className="text-[10px] text-slate-700 dark:text-slate-300 mt-0.5 font-mono font-bold truncate">
+              <p className="text-xs text-slate-800 dark:text-slate-200 mt-0.5 font-mono font-bold truncate">
                 {isRangerVerified
                   ? `GPS: ${selectedMapPoint.latitude.toFixed(4)}, ${selectedMapPoint.longitude.toFixed(4)}`
                   : `Zone approximative (Rayon sécurisé 800m)`}
@@ -609,10 +609,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             </div>
 
             <span
-              className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 shadow-2xs ${
+              className={`text-xs font-black px-3 py-1 rounded-full whitespace-nowrap shrink-0 shadow-xs ${
                 selectedMapPoint.priorityLevel === 'CRITIQUE'
                   ? 'bg-red-600 text-white'
-                  : 'bg-amber-400 text-slate-950'
+                  : 'bg-amber-400 text-slate-950 border border-amber-500 font-black'
               }`}
             >
               Priorité : {selectedMapPoint.priorityScore} pts
@@ -621,48 +621,48 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
           {/* Turtle Threat Alert Box */}
           {selectedMapPoint.turtleDangerLevel && (
-            <div className="bg-red-100 dark:bg-red-950/80 border border-red-300 dark:border-red-700 p-2.5 rounded-xl flex items-center gap-2 text-[10.5px] text-red-950 dark:text-red-100 font-bold">
-              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+            <div className="bg-rose-100 dark:bg-rose-950 border border-rose-300 dark:border-rose-700 p-3 rounded-xl flex items-center gap-2.5 text-xs text-rose-950 dark:text-rose-100 font-bold shadow-xs">
+              <AlertTriangle className="w-4.5 h-4.5 text-rose-700 dark:text-rose-300 shrink-0" />
               <div className="min-w-0">
                 <span className="font-black block whitespace-nowrap">Danger Tortue Marine :</span>
-                <span className="truncate block font-semibold">{selectedMapPoint.turtleDangerLevel}</span>
+                <span className="truncate block font-bold">{selectedMapPoint.turtleDangerLevel}</span>
               </div>
             </div>
           )}
 
           {/* Characteristics Details */}
-          <div className="grid grid-cols-2 gap-2 text-[11px] pt-0.5">
-            <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl min-w-0 border border-slate-200 dark:border-slate-700">
-              <span className="text-[9.5px] font-black text-slate-700 dark:text-slate-300 block uppercase whitespace-nowrap">Type de Déchet</span>
-              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap">
+          <div className="grid grid-cols-2 gap-2 text-xs pt-0.5">
+            <div className="bg-slate-100 dark:bg-black p-3 rounded-xl min-w-0 border border-slate-300 dark:border-slate-700">
+              <span className="text-[11px] font-black text-slate-900 dark:text-slate-200 block uppercase whitespace-nowrap">Type de Déchet</span>
+              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap text-xs sm:text-sm mt-0.5">
                 {selectedMapPoint.wasteType.replace('_', ' ')}
               </span>
             </div>
-            <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl min-w-0 border border-slate-200 dark:border-slate-700">
-              <span className="text-[9.5px] font-black text-slate-700 dark:text-slate-300 block uppercase whitespace-nowrap">Gabarit Visuel</span>
-              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap">
+            <div className="bg-slate-100 dark:bg-black p-3 rounded-xl min-w-0 border border-slate-300 dark:border-slate-700">
+              <span className="text-[11px] font-black text-slate-900 dark:text-slate-200 block uppercase whitespace-nowrap">Gabarit Visuel</span>
+              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap text-xs sm:text-sm mt-0.5">
                 {selectedMapPoint.estimatedVolume}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-300 dark:border-slate-700">
             {isRangerVerified && selectedMapPoint.status === 'reported' ? (
               <>
                 <button
                   type="button"
                   onClick={() => handleRejectReport(selectedMapPoint.id)}
-                  className="flex-1 py-2 rounded-xl border border-red-400 text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-950/40 font-black text-[11px] hover:bg-red-100 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  className="flex-1 h-12 rounded-xl border border-rose-300 text-rose-950 dark:text-rose-100 bg-rose-100 dark:bg-rose-950/70 font-black text-xs sm:text-sm hover:bg-rose-200 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span className="whitespace-nowrap">Rejeter</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApproveReport(selectedMapPoint.id)}
-                  className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-xs flex items-center justify-center gap-1 transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                  className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span className="whitespace-nowrap">Valider Hotspot</span>
                 </button>
               </>
@@ -670,10 +670,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setMobileScreen('tour')}
-                className="w-full py-2.5 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-black text-xs shadow-xs flex items-center justify-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                className="w-full h-12 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <span className="whitespace-nowrap">Programmer la Collecte & Pesée</span>
-                <ArrowRight className="w-4 h-4 text-cyan-300 shrink-0" />
+                <ArrowRight className="w-4 h-4 text-white shrink-0" />
               </button>
             )}
           </div>

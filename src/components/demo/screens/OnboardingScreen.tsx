@@ -56,14 +56,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       <div
         className={`p-4 rounded-2xl border text-xs space-y-2 transition-colors ${
           isFixora
-            ? 'bg-white border-slate-200 text-slate-700 shadow-2xs'
-            : 'bg-slate-900 border-slate-800 text-slate-100 shadow-2xs'
+            ? 'bg-white border-slate-300 text-slate-950 shadow-2xs font-medium'
+            : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs font-medium'
         }`}
       >
         <p className="leading-relaxed">
           {onboardingSlide === 1 && (
             <span>
-              <strong>Masseko</strong> est votre plateforme citoyenne dédiée à la préservation du littoral. Chaque sac plastique ramassé sur la Côte Sauvage ou à Songolo sauve des bébés tortues de l'étouffement lors de la ponte.
+              <strong className="text-slate-950 dark:text-white font-black">Masseko</strong> est votre plateforme citoyenne dédiée à la préservation du littoral. Chaque sac plastique ramassé sur la Côte Sauvage ou à Songolo sauve des bébés tortues de l'étouffement lors de la ponte.
             </span>
           )}
           {onboardingSlide === 2 && (
@@ -73,7 +73,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           )}
           {onboardingSlide === 3 && (
             <span>
-              Chaque lot collecté est pesé sur balance certifiée, identifié par <strong>QR Code</strong> et acheminé vers les recycleurs partenaires (Congo Plastic Eco-Recycling, TotalEnergies RSE).
+              Chaque lot collecté est pesé sur balance certifiée, identifié par <strong className="text-slate-950 dark:text-white font-black">QR Code</strong> et acheminé vers les recycleurs partenaires (Congo Plastic Eco-Recycling, TotalEnergies RSE).
             </span>
           )}
         </p>
@@ -86,7 +86,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               onClick={() => setOnboardingSlide(step)}
               className={`h-1.5 rounded-full transition-all ${
                 onboardingSlide === step
-                  ? 'w-6 bg-[#0284C7] dark:bg-sky-400'
+                  ? 'w-6 bg-[#007AFF] dark:bg-blue-400'
                   : 'w-2 bg-slate-300 dark:bg-slate-700'
               }`}
             />
@@ -99,27 +99,27 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {onboardingSlide < 3 ? (
           <button
             onClick={() => setOnboardingSlide(onboardingSlide + 1)}
-            className="w-full h-11 rounded-2xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <span className="whitespace-nowrap">Étape Suivante</span>
-            <ArrowRight className="w-4 h-4 text-cyan-300" />
+            <ArrowRight className="w-4 h-4 text-white" />
           </button>
         ) : (
           <button
             onClick={() => setMobileScreen('auth')}
-            className="w-full h-11 rounded-2xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-11 rounded-2xl bg-[#007AFF] hover:bg-[#0062CC] text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <Award className="w-4 h-4 text-amber-300" />
             <span className="whitespace-nowrap">Créer mon Compte ou Me Connecter</span>
-            <ArrowRight className="w-4 h-4 text-cyan-300" />
+            <ArrowRight className="w-4 h-4 text-white" />
           </button>
         )}
 
         <button
           onClick={() => setMobileScreen('home')}
-          className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+          className="w-full py-2.5 rounded-2xl bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-950 dark:text-slate-100 font-black text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer underline underline-offset-2"
         >
-          <UserCheck className="w-3.5 h-3.5" />
+          <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           <span>Accès Direct Sans Compte (Mode Invité)</span>
         </button>
       </div>

@@ -263,37 +263,37 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
       </div>
 
       {/* Hero Header Banner */}
-      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0F382A] via-[#164936] to-[#0A261E] text-white shadow-sm relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
+      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md relative overflow-hidden border border-emerald-500">
+        <div className="absolute -right-6 -bottom-6 opacity-15 pointer-events-none">
           <TurtleIcon className="w-32 h-32" />
         </div>
 
         <div className="relative z-10 space-y-1">
           <div className="flex items-center gap-1.5">
-            <span className="p-1 rounded-lg bg-emerald-500/20 text-emerald-300">
+            <span className="p-1 rounded-lg bg-white/20 text-white">
               <GraduationCap className="w-3.5 h-3.5" />
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
+            <span className="text-[10px] font-black uppercase tracking-wider text-white">
               Académie Littoral Masseko
             </span>
           </div>
 
-          <h2 className="text-base font-black tracking-tight leading-tight">
+          <h2 className="text-base font-black tracking-tight leading-tight text-white">
             Comprendre pour Mieux Protéger
           </h2>
 
-          <p className="text-[10.5px] text-emerald-100/90 leading-relaxed max-w-[280px]">
+          <p className="text-[11px] text-white/95 font-semibold leading-relaxed max-w-[280px]">
             Guide interactif des sanctuaires côtiers de Pointe-Noire, du cycle de vie des plastiques et de l'économie circulaire.
           </p>
 
-          <div className="pt-1 flex items-center gap-3 text-[9.5px] font-bold text-emerald-200/80">
+          <div className="pt-1 flex items-center gap-3 text-[10px] font-black text-white">
             <span className="flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+              <CheckCircle2 className="w-3 h-3 text-white" />
               4 Modules Clés
             </span>
             <span>•</span>
-            <span className="flex items-center gap-1">
-              <Award className="w-3 h-3 text-amber-300" />
+            <span className="flex items-center gap-1 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-md border border-amber-300 shadow-2xs">
+              <Award className="w-3 h-3 text-slate-950" />
               +40 Pts Quiz Éco
             </span>
           </div>
@@ -495,11 +495,11 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
       {/* TAB 2: DURÉE DE VIE DES PLASTIQUES */}
       {activeTab === 'lifespan' && (
         <div className="space-y-3">
-          <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[10.5px]">
-            <span className="font-black text-amber-900 dark:text-amber-200 block">
+          <div className="p-3 rounded-2xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-[10.5px] shadow-2xs">
+            <span className="font-black text-amber-950 dark:text-amber-100 block text-xs">
               Combien de temps vos déchets persistent-ils à Pointe-Noire ?
             </span>
-            <p className="text-[10px] text-amber-800 dark:text-amber-300 mt-0.5 leading-tight">
+            <p className="text-[10.5px] text-amber-950 dark:text-amber-200 mt-1 leading-tight font-bold">
               Dans l'océan Atlantique, le sel, le soleil équatorial et les vagues ne détruisent pas le plastique : ils le fragmentent en poisons microscopiques.
             </p>
           </div>
@@ -511,8 +511,8 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                 key={item.id}
                 className={`p-3 rounded-2xl border space-y-1.5 transition-all ${
                   isFixora
-                    ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
-                    : 'bg-slate-900 border-slate-800 text-white'
+                    ? 'bg-white border-slate-300 text-slate-950 shadow-2xs'
+                    : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -545,23 +545,23 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
           </div>
 
           {/* Impact Multiplier Simulation */}
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#0A3D62] to-[#0F2338] text-white shadow-xs space-y-1.5 border border-cyan-500/25">
-            <span className="text-[10px] font-black uppercase tracking-wider text-cyan-200 block">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-700 to-blue-800 text-white shadow-sm space-y-1.5 border border-blue-600">
+            <span className="text-[10px] font-black uppercase tracking-wider text-blue-200 block">
               Simulation Citoyenne Pointe-Noire
             </span>
-            <div className="text-sm font-black leading-tight">
+            <div className="text-sm font-black leading-tight text-white">
               Si 1 000 foyers évitent 1 bouteille PET par jour pendant 1 an :
             </div>
-            <div className="grid grid-cols-2 gap-2 pt-1 text-[10px]">
-              <div className="p-2 rounded-xl bg-white/10 border border-white/10">
-                <span className="text-cyan-200 block font-bold">Volume évité</span>
-                <span className="text-base font-black">9,1 Tonnes</span>
-                <span className="text-[9px] text-cyan-100 block">de plastique en mer</span>
+            <div className="grid grid-cols-2 gap-2 pt-1 text-[10.5px]">
+              <div className="p-2 rounded-xl bg-white/15 border border-white/20">
+                <span className="text-blue-100 block font-bold">Volume évité</span>
+                <span className="text-base font-black text-white">9,1 Tonnes</span>
+                <span className="text-[10px] text-blue-200 block font-semibold">de plastique en mer</span>
               </div>
-              <div className="p-2 rounded-xl bg-white/10 border border-white/10">
-                <span className="text-cyan-200 block font-bold">Nids protégés</span>
-                <span className="text-base font-black">+18 Nids</span>
-                <span className="text-[9px] text-cyan-100 block">sauvés à Songolo</span>
+              <div className="p-2 rounded-xl bg-white/15 border border-white/20">
+                <span className="text-blue-100 block font-bold">Nids protégés</span>
+                <span className="text-base font-black text-white">+18 Nids</span>
+                <span className="text-[10px] text-blue-200 block font-semibold">sauvés à Songolo</span>
               </div>
             </div>
           </div>
@@ -583,72 +583,72 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
           {/* 4 Steps Journey */}
           <div className="space-y-2">
             <div
-              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
-                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              className={`p-3 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-300 text-slate-950 shadow-2xs' : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs'
               }`}
             >
-              <div className="w-7 h-7 rounded-xl bg-sky-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                 1
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                <h4 className="font-black text-xs text-slate-950 dark:text-white">
                   Collecte & Dépôt Citoyen
                 </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[10.5px] text-slate-700 dark:text-slate-300 mt-0.5 font-medium leading-relaxed">
                   Les citoyens et pêcheurs ramassent les plastiques échoués. Dépôt dans l'un des 6 centres de quartier (Côte Sauvage, Mpita, Tié-Tié, Loandjili).
                 </p>
               </div>
             </div>
 
             <div
-              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
-                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              className={`p-3 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-300 text-slate-950 shadow-2xs' : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs'
               }`}
             >
               <div className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                 2
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                <h4 className="font-black text-xs text-slate-950 dark:text-white">
                   Pesée Certifiée & QR Code Lot
                 </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[10.5px] text-slate-700 dark:text-slate-300 mt-0.5 font-medium leading-relaxed">
                   Le collecteur pèse le sac sur une balance connectée Bluetooth. Un passeport numérique infalsifiable (Lot QR) est généré en direct.
                 </p>
               </div>
             </div>
 
             <div
-              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
-                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              className={`p-3 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-300 text-slate-950 shadow-2xs' : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs'
               }`}
             >
               <div className="w-7 h-7 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                 3
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                <h4 className="font-black text-xs text-slate-950 dark:text-white">
                   Rémunération & Mobile Money
                 </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[10.5px] text-slate-700 dark:text-slate-300 mt-0.5 font-medium leading-relaxed">
                   Crédit instantané d'Éco-Points convertibles en argent (Airtel Money / MTN MoMo) ou bons alimentaires chez les commerçants partenaires.
                 </p>
               </div>
             </div>
 
             <div
-              className={`p-2.5 rounded-2xl border flex items-start gap-2.5 ${
-                isFixora ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800 text-white'
+              className={`p-3 rounded-2xl border flex items-start gap-2.5 ${
+                isFixora ? 'bg-white border-slate-300 text-slate-950 shadow-2xs' : 'bg-[#1C1C1E] border-slate-700 text-white shadow-2xs'
               }`}
             >
               <div className="w-7 h-7 rounded-xl bg-amber-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                 4
               </div>
               <div className="min-w-0">
-                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">
+                <h4 className="font-black text-xs text-slate-950 dark:text-white">
                   Moulage de Pavés Écologiques
                 </h4>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[10.5px] text-slate-700 dark:text-slate-300 mt-0.5 font-medium leading-relaxed">
                   Mélangés à 70% avec du sable local, les plastiques fondus deviennent des pavés imperméables servant à paver les cours des écoles de Pointe-Noire.
                 </p>
               </div>
@@ -656,42 +656,42 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
           </div>
 
           {/* Pricing Grid */}
-          <div className="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-2">
-            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+          <div className="p-3 rounded-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2 shadow-xs">
+            <span className="text-[11px] font-black text-slate-950 dark:text-white uppercase tracking-wider block">
               Grille Officielle de Rachat au Kilogramme
             </span>
 
-            <div className="grid grid-cols-2 gap-2 text-[10.5px]">
-              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px]">PET 01 (Bouteilles)</span>
-                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-800 dark:text-slate-200 font-black block text-[10px]">PET 01 (Bouteilles)</span>
+                <span className="text-sm font-black text-emerald-800 dark:text-emerald-300">
                   250 FCFA / kg
                 </span>
-                <span className="text-[9px] text-slate-500 block">Environ 30 bouteilles vides</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block">Environ 30 bouteilles</span>
               </div>
 
-              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px]">PEHD 02 (Bidons rigides)</span>
-                <span className="text-sm font-black text-blue-600 dark:text-blue-400">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-800 dark:text-slate-200 font-black block text-[10px]">PEHD 02 (Bidons rigides)</span>
+                <span className="text-sm font-black text-blue-800 dark:text-blue-300">
                   220 FCFA / kg
                 </span>
-                <span className="text-[9px] text-slate-500 block">Filière tuyaux et casiers</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block">Filière tuyaux et casiers</span>
               </div>
 
-              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px]">Filets Fantômes Nylon</span>
-                <span className="text-sm font-black text-rose-600 dark:text-rose-400">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-800 dark:text-slate-200 font-black block text-[10px]">Filets Fantômes Nylon</span>
+                <span className="text-sm font-black text-rose-800 dark:text-rose-300">
                   180 FCFA / kg
                 </span>
-                <span className="text-[9px] text-slate-500 block">+ Prime biodiversité marine</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block">+ Prime biodiversité marine</span>
               </div>
 
-              <div className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px]">Aluminium & Métal</span>
-                <span className="text-sm font-black text-amber-600 dark:text-amber-400">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-800 dark:text-slate-200 font-black block text-[10px]">Aluminium & Métal</span>
+                <span className="text-sm font-black text-amber-900 dark:text-amber-300">
                   400 FCFA / kg
                 </span>
-                <span className="text-[9px] text-slate-500 block">Fonderies locales de Tié-Tié</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block">Fonderies de Tié-Tié</span>
               </div>
             </div>
           </div>
@@ -714,7 +714,7 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                 <span className="font-extrabold text-sky-600 dark:text-sky-400">
                   Question {currentQuestionIdx + 1} sur {QUIZ_QUESTIONS.length}
                 </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                <span className="text-[10.5px] text-slate-800 dark:text-slate-200 font-black">
                   Objectif : +40 Points Éco-Masseko
                 </span>
               </div>

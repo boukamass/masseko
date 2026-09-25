@@ -52,10 +52,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   return (
     <div
-      className={`px-3 py-2 border-t flex items-center justify-around text-[10px] font-bold z-30 transition-colors ${
+      className={`px-3 py-2 border-t-2 flex items-center justify-around z-30 transition-colors ${
         isFixora
-          ? 'bg-white/95 backdrop-blur-md border-slate-200/90 text-slate-600 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]'
-          : 'bg-[#0B131F]/95 backdrop-blur-md border-slate-800 text-slate-300 shadow-[0_-4px_16px_rgba(0,0,0,0.4)]'
+          ? 'bg-white border-slate-300 text-slate-950 shadow-[0_-4px_16px_rgba(0,0,0,0.08)]'
+          : 'bg-[#1C1C1E] border-slate-700 text-white shadow-[0_-4px_16px_rgba(0,0,0,0.5)]'
       }`}
     >
       {navItems.map((item) => {
@@ -66,19 +66,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             <button
               key={item.id}
               onClick={() => setMobileScreen('report')}
-              className="relative -top-3 flex flex-col items-center justify-center group focus:outline-none"
+              className="relative -top-3.5 flex flex-col items-center justify-center group focus:outline-none"
               aria-label="Signaler un déchet"
             >
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 transform group-hover:scale-105 active:scale-95 ${
+                className={`w-13 h-13 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 transform group-hover:scale-105 active:scale-95 ${
                   item.active
-                    ? 'bg-gradient-to-tr from-[#0284C7] to-teal-500 text-white ring-4 ring-teal-500/30'
-                    : 'bg-gradient-to-tr from-[#0369A1] to-teal-600 text-white hover:brightness-110 ring-2 ring-teal-400/30'
+                    ? 'bg-[#0052CC] text-white ring-4 ring-blue-500/30'
+                    : 'bg-[#007AFF] hover:bg-[#0052CC] text-white ring-2 ring-blue-400/40'
                 }`}
               >
-                <Icon className="w-5 h-5 text-white" />
+                <Icon className="w-6 h-6 text-white" />
               </div>
-              <span className="text-[9px] font-black mt-0.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+              <span className="text-[11px] font-black mt-1 text-slate-950 dark:text-white whitespace-nowrap">
                 Signaler
               </span>
             </button>
@@ -89,18 +89,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <button
             key={item.id}
             onClick={() => setMobileScreen(item.id)}
-            className={`flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-xl transition-all duration-150 min-w-[52px] ${
+            className={`flex flex-col items-center justify-center gap-1 py-1.5 px-3 rounded-xl transition-all duration-150 min-w-[56px] ${
               item.active
                 ? isFixora
-                  ? 'text-[#0284C7] font-black bg-sky-50 scale-102'
-                  : 'text-teal-300 font-black bg-slate-800/80 scale-102'
+                  ? 'text-[#0052CC] font-black bg-blue-50 scale-105 border border-blue-300'
+                  : 'text-[#0A84FF] font-black bg-[#2C2C2E] scale-105 border border-slate-600'
                 : isFixora
-                ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'text-slate-800 hover:text-slate-950 font-bold hover:bg-slate-100'
+                : 'text-slate-200 hover:text-white font-bold hover:bg-slate-800/80'
             }`}
           >
-            <Icon className={`w-4 h-4 transition-transform ${item.active ? 'scale-110' : ''}`} />
-            <span className="whitespace-nowrap leading-none tracking-tight">{item.label}</span>
+            <Icon className={`w-4.5 h-4.5 transition-transform ${item.active ? 'scale-110' : ''}`} />
+            <span className="whitespace-nowrap leading-none tracking-tight text-[11px] font-black">{item.label}</span>
           </button>
         );
       })}

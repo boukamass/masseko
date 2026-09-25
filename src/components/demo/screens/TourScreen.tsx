@@ -70,22 +70,22 @@ export const TourScreen: React.FC<TourScreenProps> = ({
       {/* 1. Sleek Compact Tour Header */}
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-300 flex items-center justify-center font-bold shrink-0">
-              <Truck className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 flex items-center justify-center font-bold shrink-0 border border-blue-200 dark:border-blue-900 shadow-xs">
+              <Truck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-slate-950 dark:text-white leading-tight">
+              <h3 className="font-black text-base text-slate-950 dark:text-white leading-tight">
                 Tournée de Collecte
               </h3>
-              <span className="text-[10.5px] text-slate-700 dark:text-slate-300 font-bold">
+              <span className="text-xs text-slate-900 dark:text-slate-100 font-black">
                 {currentTour.driverName} • {currentTour.vehicleType}
               </span>
             </div>
           </div>
 
-          <span className="text-xs font-black text-slate-900 dark:text-slate-100 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2.5 py-1 rounded-xl shadow-2xs">
-            {collectedCount}/{reports.length} faits ({progressPercent}%)
+          <span className="text-xs font-black text-slate-950 dark:text-white bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1 rounded-xl shadow-xs">
+            {collectedCount}/{reports.length} ({progressPercent}%)
           </span>
         </div>
 
@@ -94,7 +94,7 @@ export const TourScreen: React.FC<TourScreenProps> = ({
           value={selectedTourId}
           onChange={(val) => setSelectedTourId(val)}
           themeMode={themeMode}
-          icon={<Truck className="w-3.5 h-3.5 text-sky-500" />}
+          icon={<Truck className="w-4 h-4 text-blue-600" />}
           size="sm"
           options={REAL_COLLECTION_ROUTES.map((route) => ({
             value: route.id,
@@ -107,11 +107,11 @@ export const TourScreen: React.FC<TourScreenProps> = ({
       </div>
 
       {/* 2. Fast Route Bar (Progress & 1-Click Optimization) */}
-      <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 flex items-center justify-between gap-2 text-xs">
+      <div className="p-3 rounded-2xl bg-white dark:bg-[#161618] border border-slate-300 dark:border-slate-700 flex items-center justify-between gap-3 text-xs shadow-xs">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="w-full bg-slate-300 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
             <div
-              className="bg-sky-600 h-full transition-all duration-300 rounded-full"
+              className="bg-blue-600 h-full transition-all duration-300 rounded-full"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -120,25 +120,25 @@ export const TourScreen: React.FC<TourScreenProps> = ({
         <button
           type="button"
           onClick={() => setIsRouteOptimized(!isRouteOptimized)}
-          className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer shadow-2xs ${
+          className={`h-9 px-3.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer shadow-xs ${
             isRouteOptimized
-              ? 'bg-[#0A3D62] dark:bg-sky-600 text-white shadow-2xs'
-              : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-600'
+              ? 'bg-[#0052CC] text-white shadow-xs'
+              : 'bg-white dark:bg-slate-800 text-slate-950 dark:text-white border border-slate-300 dark:border-slate-600'
           }`}
           title="Alterner l'ordre des arrêts"
         >
-          <ArrowUpDown className="w-3.5 h-3.5" />
+          <ArrowUpDown className="w-4 h-4" />
           <span>{isRouteOptimized ? 'Itinéraire Optimisé' : 'Ordre Urgence'}</span>
         </button>
       </div>
 
       {/* 3. Streamlined Stops List */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-0.5">
-          <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white">
             Points d'Arrêt ({displayedReports.length})
           </span>
-          <span className="text-[11px] font-black text-slate-800 dark:text-slate-200">
+          <span className="text-xs font-black text-slate-800 dark:text-slate-200">
             {currentTour.distanceKm} km au total
           </span>
         </div>
@@ -151,24 +151,24 @@ export const TourScreen: React.FC<TourScreenProps> = ({
           return (
             <div
               key={r.id}
-              className={`p-3 rounded-2xl border transition-all text-xs ${
+              className={`p-3.5 rounded-2xl border transition-all text-xs ${
                 isSelected
-                  ? 'bg-sky-50 dark:bg-slate-800 border-sky-500 shadow-md ring-2 ring-sky-500/20'
+                  ? 'bg-blue-50 dark:bg-blue-950/70 border-blue-600 shadow-md ring-2 ring-blue-500/20'
                   : isCollected
                   ? 'bg-slate-100 dark:bg-slate-900/60 border-slate-300 dark:border-slate-800'
                   : isFixora
-                  ? 'bg-white border-slate-300 text-slate-900 shadow-2xs hover:border-slate-400'
-                  : 'bg-slate-900 border-slate-700 text-white shadow-2xs hover:border-slate-600'
+                  ? 'bg-white border-slate-300 text-slate-950 shadow-sm hover:border-slate-500'
+                  : 'bg-[#161618] border-slate-700 text-white shadow-sm hover:border-slate-500'
               }`}
             >
               {/* Stop Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <span
-                    className={`w-6 h-6 rounded-full font-black text-[11px] flex items-center justify-center shrink-0 shadow-2xs ${
+                    className={`w-7 h-7 rounded-full font-black text-xs flex items-center justify-center shrink-0 shadow-xs ${
                       isCollected
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-black'
+                        : 'bg-slate-200 dark:bg-slate-800 text-slate-950 dark:text-white font-black'
                     }`}
                   >
                     {isCollected ? '✓' : index + 1}
@@ -176,23 +176,23 @@ export const TourScreen: React.FC<TourScreenProps> = ({
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-black text-xs text-slate-950 dark:text-white truncate block">
+                      <span className="font-black text-xs sm:text-sm text-slate-950 dark:text-white truncate block">
                         {r.locationName}
                       </span>
                       {r.isNestingZone && (
-                        <TurtleIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <TurtleIcon className="w-4 h-4 text-emerald-600 shrink-0" />
                       )}
                     </div>
-                    <span className="text-[10.5px] text-slate-700 dark:text-slate-300 font-bold block truncate">
+                    <span className="text-xs text-slate-800 dark:text-slate-200 font-bold block truncate mt-0.5">
                       {r.wasteType.replace('_', ' ')} • Est. {r.estimatedWeightKg} kg
                     </span>
                   </div>
                 </div>
 
                 {/* Right Badge / Action */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   {isCollected ? (
-                    <span className="text-[10.5px] font-black text-emerald-900 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-full whitespace-nowrap shadow-2xs border border-emerald-300 dark:border-emerald-800">
+                    <span className="text-xs font-black text-white bg-emerald-600 px-3 py-1 rounded-full whitespace-nowrap shadow-xs">
                       {r.actualWeightKg || r.estimatedWeightKg} kg réels
                     </span>
                   ) : (
@@ -204,9 +204,9 @@ export const TourScreen: React.FC<TourScreenProps> = ({
                           setWeighInput(r.estimatedWeightKg);
                         }
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-[11px] font-black transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs active:scale-95"
+                      className="h-10 px-3.5 rounded-xl bg-[#0052CC] hover:bg-[#00388A] text-white text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95"
                     >
-                      <Scale className="w-3.5 h-3.5 shrink-0" />
+                      <Scale className="w-4 h-4 shrink-0" />
                       <span className="whitespace-nowrap">{isSelected ? 'Fermer' : 'Peser'}</span>
                     </button>
                   )}
@@ -215,27 +215,27 @@ export const TourScreen: React.FC<TourScreenProps> = ({
 
               {/* Simplified Inline Weighing Box */}
               {isSelected && !isCollected && (
-                <div className="mt-2.5 pt-2.5 border-t border-slate-300 dark:border-slate-700 space-y-2 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between text-[11px] gap-2">
-                    <span className="font-black text-slate-800 dark:text-slate-200 truncate">
+                <div className="mt-3 pt-3 border-t border-slate-300 dark:border-slate-700 space-y-2 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between text-xs gap-2">
+                    <span className="font-black text-slate-950 dark:text-white truncate">
                       Pesée connectée Bluetooth :
                     </span>
-                    <span className="text-[10.5px] text-sky-700 dark:text-sky-300 font-mono font-bold whitespace-nowrap shrink-0">
+                    <span className="text-xs text-blue-700 dark:text-blue-300 font-mono font-bold whitespace-nowrap shrink-0">
                       Balance #MASSEKO-BT1
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div className="relative flex-1">
                       <input
                         type="number"
                         step="0.5"
                         value={weighInput}
                         onChange={(e) => setWeighInput(parseFloat(e.target.value) || 0)}
-                        className="w-full h-10 px-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 font-black text-xs text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full h-12 px-3.5 rounded-xl bg-white dark:bg-black border-2 border-slate-300 dark:border-slate-600 font-black text-base text-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner"
                         placeholder="Ex: 24.5"
                       />
-                      <span className="absolute right-3 top-2.5 text-[11px] font-black text-slate-600 dark:text-slate-400 pointer-events-none">
+                      <span className="absolute right-3.5 top-3 text-xs font-black text-slate-800 dark:text-slate-200 pointer-events-none">
                         kg
                       </span>
                     </div>
@@ -243,7 +243,7 @@ export const TourScreen: React.FC<TourScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => handleValidateCollection(r.id)}
-                      className="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl font-black text-xs shadow-md transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                      className="h-12 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span className="whitespace-nowrap">{weighSuccess ? 'Validé !' : 'Valider Lot QR'}</span>

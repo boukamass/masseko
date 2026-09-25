@@ -163,24 +163,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     <div className="space-y-3.5 pb-3">
       {/* Brand Header */}
       <div className="text-center pt-1 space-y-1.5">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0A3D62] to-[#0F2338] text-white flex items-center justify-center mx-auto shadow-md border border-cyan-500/30">
-          <TurtleIcon className="w-6 h-6 text-cyan-300" />
+        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-md border border-blue-500">
+          <TurtleIcon className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center justify-center gap-1.5">
+          <h2 className="text-base font-black text-slate-950 dark:text-white flex items-center justify-center gap-1.5">
             Masseko Pointe-Noire
-            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
+            <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-950 border border-blue-300 shadow-2xs">
               Pass Écocitoyen
             </span>
           </h2>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-800 dark:text-slate-200 font-bold">
             Protection des tortues marines & traçabilité des plastiques côtiers
           </p>
         </div>
       </div>
 
       {/* Auth Mode Tabs (Connexion / Inscription) */}
-      <div className="flex rounded-2xl p-1 bg-slate-200/80 dark:bg-slate-800 border border-slate-300/60 dark:border-slate-700">
+      <div className="flex rounded-2xl p-1 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
         <button
           type="button"
           onClick={() => {
@@ -190,8 +190,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           }}
           className={`w-1/2 py-2 rounded-xl font-black text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             authMode === 'login'
-              ? 'bg-white dark:bg-slate-900 text-[#0A3D62] dark:text-sky-300 shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-white shadow-xs'
+              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950 font-bold'
           }`}
         >
           <span className="whitespace-nowrap">Se Connecter</span>
@@ -206,8 +206,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           }}
           className={`w-1/2 py-2 rounded-xl font-black text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             authMode === 'register'
-              ? 'bg-white dark:bg-slate-900 text-[#0A3D62] dark:text-sky-300 shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-white shadow-xs'
+              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950 font-bold'
           }`}
         >
           <span className="whitespace-nowrap">Créer un Compte</span>
@@ -235,13 +235,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <div
             className={`p-3.5 rounded-2xl border space-y-3 ${
               isFixora
-                ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
-                : 'bg-slate-900 border-slate-800 text-white'
+                ? 'bg-white border-slate-300 text-slate-950 shadow-xs'
+                : 'bg-[#1C1C1E] border-slate-800 text-white shadow-xs'
             }`}
           >
             {/* Phone or Email Field */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                 Téléphone (Congo +242) ou Email :
               </label>
               <div className="relative">
@@ -251,23 +251,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={loginPhoneOrEmail}
                   onChange={(e) => setLoginPhoneOrEmail(e.target.value)}
                   placeholder="+242 06 123 45 67"
-                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-bold border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                      : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
+                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
                   }`}
                 />
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <Phone className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3 pointer-events-none" />
               </div>
             </div>
 
             {/* PIN Code / Password Field */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                   Code PIN Terrestre ou Mot de Passe :
                 </label>
-                <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold">
+                <span className="text-[10px] text-blue-700 dark:text-blue-300 font-black">
                   (Défaut: 1234)
                 </span>
               </div>
@@ -278,17 +278,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={loginPin}
                   onChange={(e) => setLoginPin(e.target.value)}
                   placeholder="Code PIN à 4 chiffres"
-                  className={`w-full h-10 pl-9 pr-10 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                  className={`w-full h-10 pl-9 pr-10 rounded-xl text-xs font-bold border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                      : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
+                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
                   }`}
                 />
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <KeyRound className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  className="absolute right-3 top-3 text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -296,8 +296,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             </div>
 
             {/* Offline Token Info Badge */}
-            <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center gap-2 text-[10.5px] text-slate-800 dark:text-slate-200 font-bold">
+              <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
               <span>Authentification locale hors-ligne active (SQLite / PowerSync).</span>
             </div>
           </div>
@@ -305,7 +305,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full h-11 rounded-2xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-12 rounded-2xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
             <Lock className="w-4 h-4 text-cyan-300 shrink-0" />
             <span className="whitespace-nowrap">Se Connecter & Accéder au Pass</span>
@@ -314,10 +314,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           {/* Quick Demo Personas Selector */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100">
                 Connexion Rapide (Personas Pointe-Noire)
               </span>
-              <Award className="w-3.5 h-3.5 text-amber-500" />
+              <Award className="w-4 h-4 text-amber-500" />
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
@@ -328,20 +328,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     key={u.id}
                     type="button"
                     onClick={() => handleQuickDemoSelect(u)}
-                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
                       isSelected
-                        ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/60 ring-1 ring-sky-500/40'
+                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/60 ring-2 ring-blue-500/40 text-blue-950 dark:text-white'
                         : isFixora
-                        ? 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
-                        : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-white'
+                        ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 shadow-xs'
+                        : 'bg-[#1C1C1E] hover:bg-slate-800 border-slate-700 text-white shadow-xs'
                     }`}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
                       {u.fullName.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <span className="font-bold text-[11px] block truncate">{u.fullName}</span>
-                      <span className="text-[9px] text-slate-400 truncate block">
+                      <span className="font-black text-xs block truncate text-slate-950 dark:text-white">{u.fullName}</span>
+                      <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold truncate block">
                         {u.role === 'citizen' ? 'Sentinelle' : u.role === 'collector' ? 'Collecteur' : u.role === 'fisherman' ? 'Pêcheur' : 'Lycée'}
                       </span>
                     </div>
@@ -359,20 +359,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           {registerError && (
             <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <span>{registerError}</span>
+              <span className="font-bold">{registerError}</span>
             </div>
           )}
 
           <div
             className={`p-3.5 rounded-2xl border space-y-3 ${
               isFixora
-                ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
-                : 'bg-slate-900 border-slate-800 text-white'
+                ? 'bg-white border-slate-300 text-slate-950 shadow-xs'
+                : 'bg-[#1C1C1E] border-slate-800 text-white shadow-xs'
             }`}
           >
             {/* Full Name */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                 Nom Complet ou Pseudonyme Écocitoyen :
               </label>
               <div className="relative">
@@ -382,20 +382,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
                   placeholder="Ex: Jean-Marc Mabiala"
-                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                      : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
+                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
                   }`}
                 />
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <User className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
               </div>
             </div>
 
             {/* Phone & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                   Téléphone (+242) :
                 </label>
                 <div className="relative">
@@ -405,18 +405,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
                     placeholder="+242 06 123 45 67"
-                    className={`w-full h-10 pl-8 pr-2 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                    className={`w-full h-11 pl-8 pr-2 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
                       isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                        : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
+                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
                     }`}
                   />
-                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3 pointer-events-none" />
+                  <Phone className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 absolute left-2.5 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                   Email (Optionnel) :
                 </label>
                 <div className="relative">
@@ -425,45 +425,45 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="contact@exemple.cg"
-                    className={`w-full h-10 pl-8 pr-2 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                    className={`w-full h-11 pl-8 pr-2 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
                       isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                        : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 focus:bg-white text-slate-950 placeholder:text-slate-600'
+                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 focus:bg-black text-white placeholder:text-slate-400'
                     }`}
                   />
-                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3 pointer-events-none" />
+                  <Mail className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 absolute left-2.5 top-3.5 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {/* Neighborhood Selector */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                 Quartier / Secteur Littoral de Pointe-Noire :
               </label>
               <div className="relative">
                 <select
                   value={regNeighborhood}
                   onChange={(e) => setRegNeighborhood(e.target.value)}
-                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-semibold border outline-hidden transition-colors appearance-none cursor-pointer ${
+                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors appearance-none cursor-pointer ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                      : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
+                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
                   }`}
                 >
                   {POINTE_NOIRE_NEIGHBORHOODS.map((n) => (
-                    <option key={n} value={n} className="text-slate-900">
+                    <option key={n} value={n} className="text-slate-950">
                       {n}
                     </option>
                   ))}
                 </select>
-                <MapPin className="w-4 h-4 text-sky-600 dark:text-sky-400 absolute left-3 top-3 pointer-events-none" />
+                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400 absolute left-3 top-3.5 pointer-events-none" />
               </div>
             </div>
 
             {/* Role / Engagement Type */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                 Rôle & Statut dans la Communauté Masseko :
               </label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -480,19 +480,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       key={roleItem.id}
                       type="button"
                       onClick={() => setRegRole(roleItem.id)}
-                      className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
                         isRoleActive
-                          ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/60 ring-1 ring-sky-500/40 text-sky-900 dark:text-sky-200'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/80 ring-2 ring-blue-500/30 text-blue-950 dark:text-blue-100 font-black'
                           : isFixora
-                          ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
-                          : 'bg-slate-950 hover:bg-slate-800 border-slate-800 text-slate-200'
+                          ? 'bg-white hover:bg-slate-100 border-slate-300 text-slate-950 font-bold'
+                          : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200 font-bold'
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                        <span className="font-bold text-[10.5px] truncate">{roleItem.label}</span>
+                        <Icon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span className="font-black text-[11px] truncate">{roleItem.label}</span>
                       </div>
-                      <span className="text-[9px] text-slate-400 truncate">{roleItem.desc}</span>
+                      <span className="text-[10px] text-slate-800 dark:text-slate-200 font-bold truncate">{roleItem.desc}</span>
                     </button>
                   );
                 })}
@@ -502,7 +502,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             {/* If school selected, ask school name */}
             {regRole === 'school' && (
               <div className="space-y-1 animate-in fade-in">
-                <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+                <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                   Nom de l'Établissement Scolaire :
                 </label>
                 <div className="relative">
@@ -511,20 +511,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     value={regSchoolName}
                     onChange={(e) => setRegSchoolName(e.target.value)}
                     placeholder="Ex: Lycée Victor Augagneur, CEG Anselme Pembellot"
-                    className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-semibold border outline-hidden transition-colors ${
+                    className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold border outline-hidden transition-colors ${
                       isFixora
-                        ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                        : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                        ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
+                        : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
                     }`}
                   />
-                  <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                  <GraduationCap className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
                 </div>
               </div>
             )}
 
             {/* PIN Code Creation */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-500 dark:text-slate-300 block">
+              <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 block">
                 Créer un Code PIN Rapide (4 Chiffres) :
               </label>
               <div className="relative">
@@ -535,13 +535,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   value={regPin}
                   onChange={(e) => setRegPin(e.target.value)}
                   placeholder="2026"
-                  className={`w-full h-10 pl-9 pr-3 rounded-xl text-xs font-semibold font-mono tracking-widest border outline-hidden transition-colors ${
+                  className={`w-full h-11 pl-9 pr-3 rounded-xl text-xs sm:text-sm font-bold font-mono tracking-widest border outline-hidden transition-colors ${
                     isFixora
-                      ? 'bg-slate-50 border-slate-300 focus:border-sky-600 text-slate-900'
-                      : 'bg-slate-950 border-slate-700 focus:border-sky-400 text-white'
+                      ? 'bg-slate-50 border-slate-300 focus:border-blue-600 text-slate-950'
+                      : 'bg-slate-900 border-slate-700 focus:border-blue-400 text-white'
                   }`}
                 />
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+                <KeyRound className="w-4 h-4 text-slate-600 dark:text-slate-300 absolute left-3 top-3.5 pointer-events-none" />
               </div>
             </div>
 
@@ -551,9 +551,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 type="checkbox"
                 checked={regAcceptedCharter}
                 onChange={(e) => setRegAcceptedCharter(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+              <span className="text-[11px] text-slate-800 dark:text-slate-200 font-bold leading-tight">
                 J’accepte la charte écocitoyenne de Pointe-Noire (non-divulgation des nids sensibles aux braconniers & tri certifié).
               </span>
             </label>
@@ -562,11 +562,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           {/* Submit Registration Button */}
           <button
             type="submit"
-            className="w-full h-11 rounded-2xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="w-full h-12 rounded-2xl bg-[#0052CC] hover:bg-[#00388A] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Award className="w-4 h-4 text-amber-400 shrink-0" />
+            <Award className="w-4 h-4 text-amber-300 shrink-0" />
             <span className="whitespace-nowrap">Créer mon Compte (+50 Pts Offerts)</span>
-            <ArrowRight className="w-4 h-4 text-cyan-300 shrink-0" />
+            <ArrowRight className="w-4 h-4 text-white shrink-0" />
           </button>
         </form>
       )}
@@ -576,7 +576,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         <button
           type="button"
           onClick={() => setMobileScreen('home')}
-          className="text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-bold py-1.5 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+          className="text-xs text-slate-950 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 font-black py-1.5 transition-colors inline-flex items-center gap-1.5 cursor-pointer underline underline-offset-2"
         >
           <span>Continuer en Mode Invité (Sans Compte)</span>
           <ArrowRight className="w-3.5 h-3.5" />
