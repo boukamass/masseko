@@ -36,12 +36,13 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({
 }) => {
   const isFixora = themeMode === 'fixora';
 
-  const totalCertifiedKg = reports.reduce((acc, r) => acc + (r.actualWeightKg || 0), 0);
-  const totalCo2SavedKg = (totalCertifiedKg * 2.5).toFixed(1);
-  const totalNestsProtected = reports.filter((r) => r.isNestingZone).length * 4;
-
   const currentCampaign =
     REAL_IMPACT_CAMPAIGNS.find((c) => c.id === selectedCampaignId) || REAL_IMPACT_CAMPAIGNS[0];
+
+  const totalCertifiedKg = (currentCampaign.actualAchievedKg || 0) + reports.reduce((acc, r) => acc + (r.actualWeightKg || 0), 0);
+  const totalCo2SavedKg = (totalCertifiedKg * 2.5).toFixed(1);
+  const totalNestsProtected = 18 + reports.filter((r) => r.isNestingZone).length * 4;
+  const campaignProgress = Math.min(100, Math.round((totalCertifiedKg / (currentCampaign.targetObjectiveKg || 1000)) * 100));
 
   return (
     <div className="space-y-3 pb-3">
@@ -81,6 +82,24 @@ export const ImpactScreen: React.FC<ImpactScreenProps> = ({
             badgeColor: 'emerald',
           }))}
         />
+
+        {/* Campaign Progress Gauge */}
+        <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1.5">
+          <div className="flex items-center justify-between text-[10.5px] font-black">
+            <span className="text-slate-700 dark:text-slate-300">
+              Objectif {currentCampaign.partner} : {currentCampaign.targetObjectiveKg} kg
+            </span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              {campaignProgress}% atteint
+            </span>
+          </div>
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-500 rounded-full"
+              style={{ width: `${campaignProgress}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 2. Compact 4 KPI Cards Grid */}

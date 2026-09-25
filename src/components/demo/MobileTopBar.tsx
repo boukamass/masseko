@@ -53,6 +53,7 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
       <div className="flex items-center gap-1.5">
         {/* Offline / Online Network Indicator */}
         <button
+          type="button"
           onClick={() => {
             if (!isOnline) {
               syncPendingReports();
@@ -60,22 +61,26 @@ export const MobileTopBar: React.FC<MobileTopBarProps> = ({
               setIsOnline(false);
             }
           }}
-          className={`px-2 py-0.5 rounded-full text-[9.5px] font-extrabold flex items-center gap-1 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+          className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap shrink-0 cursor-pointer shadow-2xs ${
             isOnline
-              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-              : 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40'
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500 ring-2 ring-emerald-500/20'
+              : 'bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-300 ring-2 ring-amber-400/20'
           }`}
-          title={isOnline ? 'Réseau 4G actif' : 'Mode Hors-ligne'}
+          title={
+            isOnline
+              ? 'Réseau 4G actif (Cliquer pour basculer en mode Hors-ligne terrain)'
+              : 'Mode Hors-ligne terrain (Cliquer pour synchroniser en 4G)'
+          }
         >
           {isOnline ? (
             <>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>4G</span>
+              <Wifi className="w-3 h-3 text-white shrink-0 animate-pulse" />
+              <span>4G En Ligne</span>
             </>
           ) : (
             <>
-              <WifiOff className="w-2.5 h-2.5 text-amber-500 shrink-0" />
-              <span>Hors-ligne</span>
+              <WifiOff className="w-3 h-3 text-slate-950 shrink-0" />
+              <span>Hors-ligne{pendingSyncCount > 0 ? ` (${pendingSyncCount})` : ''}</span>
             </>
           )}
         </button>

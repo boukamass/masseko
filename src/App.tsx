@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   mockReports, 
   mockLots, 
@@ -42,10 +42,37 @@ export default function App() {
   const [showDonorExportModal, setShowDonorExportModal] = useState<boolean>(false);
   const [selectedDonorTemplate, setSelectedDonorTemplate] = useState<string>('ffem');
 
-  // Reports & Network Offline State
-  const [isOnline, setIsOnline] = useState<boolean>(false);
+  // Reports & Network Real-time Detection State
+  const [isOnline, setIsOnline] = useState<boolean>(() => {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+  });
   const [reports, setReports] = useState<WasteReport[]>(mockReports);
   const [reportSuccess, setReportSuccess] = useState<string | null>(null);
+
+  // Automatic Network Detection & Auto-Sync Hook
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      // Automatically sync any pending reports when network reconnects
+      setReports((prev) =>
+        prev.map((r) => (r.syncState === 'pending' ? { ...r, syncState: 'synced' as SyncState } : r))
+      );
+      setReportSuccess('Connexion Internet rétablie : synchronisation automatique effectuée.');
+      setTimeout(() => setReportSuccess(null), 3500);
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // 5-Step Report Wizard State
   const [reportStep, setReportStep] = useState<number>(1);

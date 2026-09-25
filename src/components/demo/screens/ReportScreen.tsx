@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Camera, 
   MapPin, 
@@ -9,7 +9,10 @@ import {
   ShoppingBag, 
   Package, 
   Layers,
-  ShieldAlert
+  ShieldAlert,
+  Navigation,
+  Upload,
+  RefreshCw
 } from 'lucide-react';
 import { 
   POINTE_NOIRE_COASTAL_SITES, 
@@ -72,6 +75,48 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
   setMobileScreen,
 }) => {
   const isFixora = themeMode === 'fixora';
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Real Camera & Real GPS state
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
+  const [realGpsCoords, setRealGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocatingGPS, setIsLocatingGPS] = useState<boolean>(false);
+  const [gpsStatusMessage, setGpsStatusMessage] = useState<string | null>(null);
+
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCapturedPhotoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGetRealGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsStatusMessage("Géolocalisation non supportée par ce navigateur.");
+      return;
+    }
+
+    setIsLocatingGPS(true);
+    setGpsStatusMessage("Recherche du signal GPS en cours...");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsLocatingGPS(false);
+        const { latitude, longitude } = position.coords;
+        setRealGpsCoords({ lat: latitude, lng: longitude });
+        setGpsStatusMessage(`GPS Fixé : ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+      },
+      (error) => {
+        setIsLocatingGPS(false);
+        setGpsStatusMessage("Signal GPS approximatif (Côte Pointe-Noire activée).");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const stepTitles = [
     'Photo & Secteur',
@@ -179,20 +224,75 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
         {/* ================= STEP 1: PHOTO & LOCATION ================= */}
         {reportStep === 1 && (
           <div className="space-y-3 animate-in fade-in">
-            <div className="relative w-full h-40 rounded-2xl overflow-hidden bg-slate-900 border border-emerald-500/30 flex items-center justify-center text-white">
+            {/* Real Camera Capture / Photo Area */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotoCapture}
+              className="hidden"
+            />
+
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-900 border border-emerald-500/30 flex items-center justify-center text-white group">
               <img
-                src="https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80"
+                src={
+                  capturedPhotoUrl ||
+                  "https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&w=800&q=80"
+                }
                 alt="Captured Waste"
-                className="absolute inset-0 w-full h-full object-cover opacity-85"
+                className="absolute inset-0 w-full h-full object-cover opacity-85 transition-transform group-hover:scale-105"
               />
-              <div className="relative z-10 bg-slate-950/75 px-3 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 backdrop-blur-xs">
-                <Camera className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Photo capturée • GPS synchronisé</span>
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-3 gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="bg-slate-950/85 px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 backdrop-blur-xs text-white border border-white/10">
+                    <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{capturedPhotoUrl ? 'Photo Réelle Capturée' : 'Aperçu Déchet Littoral'}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                  >
+                    <Camera className="w-4 h-4 shrink-0" />
+                    <span>Ouvrir Caméra</span>
+                  </button>
+                </div>
               </div>
             </div>
 
+            {/* Live GPS Locator Button */}
+            <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Navigation className={`w-4 h-4 text-emerald-500 ${isLocatingGPS ? 'animate-spin' : ''}`} />
+                  <span className="font-extrabold text-xs text-slate-900 dark:text-white">
+                    Position GPS Réelle
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGetRealGPS}
+                  disabled={isLocatingGPS}
+                  className="px-2.5 py-1 rounded-xl bg-[#0A3D62] text-white font-bold text-[10.5px] hover:bg-[#072a44] transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isLocatingGPS ? 'animate-spin' : ''}`} />
+                  <span>Actualiser GPS</span>
+                </button>
+              </div>
+
+              {gpsStatusMessage && (
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                  {gpsStatusMessage}
+                </p>
+              )}
+            </div>
+
             <ModernSelect
-              label="Secteur Littoral :"
+              label="Secteur Littoral Sélectionné :"
               value={locationName}
               onChange={(val) => setLocationName(val)}
               themeMode={themeMode}
@@ -214,7 +314,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
             <button
               type="button"
               onClick={() => setReportStep(2)}
-              className="w-full h-10 px-3 rounded-xl bg-[#0A3D62] dark:bg-sky-600 hover:bg-[#082F4D] text-white font-black text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+              className="w-full h-11 px-3 rounded-xl bg-[#0A3D62] dark:bg-sky-600 hover:bg-[#082F4D] text-white font-black text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap"
             >
               <span className="whitespace-nowrap">Suivant : Type de Déchet</span>
               <ArrowRight className="w-4 h-4 shrink-0" />

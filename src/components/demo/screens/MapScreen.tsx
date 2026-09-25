@@ -352,10 +352,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setIsRangerVerified(!isRangerVerified)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer shadow-2xs ${
               isRangerVerified
                 ? 'bg-[#0A3D62] dark:bg-sky-600 text-white shadow-xs'
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700'
             }`}
             title="Activer la vue précise Éco-Garde Renatura"
           >
@@ -366,7 +366,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               </>
             ) : (
               <>
-                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span className="whitespace-nowrap">Vue Publique (Floutage 800m)</span>
               </>
             )}
@@ -376,11 +376,11 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapTileMode(mapTileMode === 'osm_offline' ? 'satellite' : 'osm_offline')}
-            className="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-[10.5px] font-black flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-2xs"
           >
-            <Layers className="w-3.5 h-3.5 shrink-0" />
+            <Layers className="w-3.5 h-3.5 shrink-0 text-slate-700 dark:text-slate-300" />
             <span className="whitespace-nowrap">
-              {mapTileMode === 'osm_offline' ? 'Vue Rue (Uber)' : 'Vue Satellite'}
+              {mapTileMode === 'osm_offline' ? 'Vue Rue' : 'Vue Satellite'}
             </span>
           </button>
         </div>
@@ -418,14 +418,14 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         </div>
 
         {/* Category Filters Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10px] font-extrabold">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10.5px] font-black">
           <button
             type="button"
             onClick={() => setMapFilter('all')}
-            className={`px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'all'
                 ? 'bg-[#0A3D62] text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
             }`}
           >
             <span className="whitespace-nowrap">Tous ({reports.length})</span>
@@ -433,10 +433,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('critical')}
-            className={`px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'critical'
-                ? 'bg-red-700 text-white shadow-xs'
-                : 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'bg-red-100 dark:bg-red-950/70 text-red-900 dark:text-red-200 border border-red-300 dark:border-red-800'
             }`}
           >
             <span className="whitespace-nowrap">
@@ -446,13 +446,13 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('turtle_nest')}
-            className={`px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
               mapFilter === 'turtle_nest'
-                ? 'bg-emerald-700 text-white shadow-xs'
-                : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300'
+                ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                : 'bg-amber-100 dark:bg-amber-950/70 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800 font-bold'
             }`}
           >
-            <TurtleIcon className="w-3 h-3 shrink-0" />
+            <TurtleIcon className="w-3.5 h-3.5 shrink-0" />
             <span className="whitespace-nowrap">
               Nids ({reports.filter((r) => r.isNestingZone).length})
             </span>
@@ -460,10 +460,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
           <button
             type="button"
             onClick={() => setMapFilter('collected')}
-            className={`px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-full whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               mapFilter === 'collected'
-                ? 'bg-blue-700 text-white shadow-xs'
-                : 'bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800'
             }`}
           >
             <span className="whitespace-nowrap">
@@ -589,19 +589,19 @@ export const MapScreen: React.FC<MapScreenProps> = ({
         <div
           className={`p-3.5 rounded-2xl border transition-all space-y-2.5 text-xs ${
             isFixora
-              ? 'bg-white border-slate-200 text-slate-800 shadow-sm'
-              : 'bg-slate-900 border-slate-800 text-white shadow-sm'
+              ? 'bg-white border-slate-300 text-slate-900 shadow-md'
+              : 'bg-slate-900 border-slate-700 text-white shadow-md'
           }`}
         >
           {/* Card Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h4 className="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                <h4 className="font-black text-xs text-slate-950 dark:text-white truncate">
                   {selectedMapPoint.locationName}
                 </h4>
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono truncate">
+              <p className="text-[10px] text-slate-700 dark:text-slate-300 mt-0.5 font-mono font-bold truncate">
                 {isRangerVerified
                   ? `GPS: ${selectedMapPoint.latitude.toFixed(4)}, ${selectedMapPoint.longitude.toFixed(4)}`
                   : `Zone approximative (Rayon sécurisé 800m)`}
@@ -609,10 +609,10 @@ export const MapScreen: React.FC<MapScreenProps> = ({
             </div>
 
             <span
-              className={`text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+              className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 shadow-2xs ${
                 selectedMapPoint.priorityLevel === 'CRITIQUE'
-                  ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'
-                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-amber-400 text-slate-950'
               }`}
             >
               Priorité : {selectedMapPoint.priorityScore} pts
@@ -621,46 +621,46 @@ export const MapScreen: React.FC<MapScreenProps> = ({
 
           {/* Turtle Threat Alert Box */}
           {selectedMapPoint.turtleDangerLevel && (
-            <div className="bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800/80 p-2 rounded-xl flex items-center gap-2 text-[10px] text-red-900 dark:text-red-200">
+            <div className="bg-red-100 dark:bg-red-950/80 border border-red-300 dark:border-red-700 p-2.5 rounded-xl flex items-center gap-2 text-[10.5px] text-red-950 dark:text-red-100 font-bold">
               <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
               <div className="min-w-0">
-                <span className="font-bold block whitespace-nowrap">Danger Tortue Marine :</span>
-                <span className="truncate block">{selectedMapPoint.turtleDangerLevel}</span>
+                <span className="font-black block whitespace-nowrap">Danger Tortue Marine :</span>
+                <span className="truncate block font-semibold">{selectedMapPoint.turtleDangerLevel}</span>
               </div>
             </div>
           )}
 
           {/* Characteristics Details */}
           <div className="grid grid-cols-2 gap-2 text-[11px] pt-0.5">
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl min-w-0">
-              <span className="text-[9px] font-bold text-slate-400 block uppercase whitespace-nowrap">Type de Déchet</span>
-              <span className="font-extrabold capitalize text-slate-800 dark:text-slate-200 truncate block whitespace-nowrap">
+            <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl min-w-0 border border-slate-200 dark:border-slate-700">
+              <span className="text-[9.5px] font-black text-slate-700 dark:text-slate-300 block uppercase whitespace-nowrap">Type de Déchet</span>
+              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap">
                 {selectedMapPoint.wasteType.replace('_', ' ')}
               </span>
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl min-w-0">
-              <span className="text-[9px] font-bold text-slate-400 block uppercase whitespace-nowrap">Gabarit Visuel</span>
-              <span className="font-extrabold capitalize text-slate-800 dark:text-slate-200 truncate block whitespace-nowrap">
+            <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl min-w-0 border border-slate-200 dark:border-slate-700">
+              <span className="text-[9.5px] font-black text-slate-700 dark:text-slate-300 block uppercase whitespace-nowrap">Gabarit Visuel</span>
+              <span className="font-black capitalize text-slate-950 dark:text-white truncate block whitespace-nowrap">
                 {selectedMapPoint.estimatedVolume}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60">
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700">
             {isRangerVerified && selectedMapPoint.status === 'reported' ? (
               <>
                 <button
                   type="button"
                   onClick={() => handleRejectReport(selectedMapPoint.id)}
-                  className="flex-1 py-2 rounded-xl border border-red-300 text-red-700 dark:text-red-300 font-bold text-[11px] hover:bg-red-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  className="flex-1 py-2 rounded-xl border border-red-400 text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-950/40 font-black text-[11px] hover:bg-red-100 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span className="whitespace-nowrap">Rejeter</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApproveReport(selectedMapPoint.id)}
-                  className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shadow-xs flex items-center justify-center gap-1 transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                  className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] shadow-xs flex items-center justify-center gap-1 transition-all whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span className="whitespace-nowrap">Valider Hotspot</span>
@@ -670,7 +670,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setMobileScreen('tour')}
-                className="w-full py-2.5 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-black text-xs shadow-xs flex items-center justify-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <span className="whitespace-nowrap">Programmer la Collecte & Pesée</span>
                 <ArrowRight className="w-4 h-4 text-cyan-300 shrink-0" />

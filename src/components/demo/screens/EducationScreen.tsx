@@ -301,56 +301,56 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
       </div>
 
       {/* Modern 4-Tab Navigation Selector */}
-      <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-slate-200/80 dark:bg-slate-800/80 text-[9.5px] font-bold">
+      <div className="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-slate-200 dark:bg-slate-800 text-[10.5px] font-black border border-slate-300 dark:border-slate-700">
         <button
           type="button"
           onClick={() => setActiveTab('turtles')}
-          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+          className={`py-2 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
             activeTab === 'turtles'
-              ? 'bg-emerald-700 text-white font-black shadow-2xs'
-              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              ? 'bg-emerald-700 text-white font-black shadow-xs'
+              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950'
           }`}
         >
-          <TurtleIcon className="w-3.5 h-3.5" />
-          <span className="leading-tight truncate">Tortues</span>
+          <TurtleIcon className="w-4 h-4" />
+          <span className="leading-tight truncate font-black">Tortues</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('lifespan')}
-          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+          className={`py-2 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
             activeTab === 'lifespan'
-              ? 'bg-emerald-700 text-white font-black shadow-2xs'
-              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              ? 'bg-emerald-700 text-white font-black shadow-xs'
+              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950'
           }`}
         >
-          <Clock className="w-3.5 h-3.5" />
-          <span className="leading-tight truncate">Plastiques</span>
+          <Clock className="w-4 h-4" />
+          <span className="leading-tight truncate font-black">Plastiques</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('circular')}
-          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+          className={`py-2 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
             activeTab === 'circular'
-              ? 'bg-emerald-700 text-white font-black shadow-2xs'
-              : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+              ? 'bg-emerald-700 text-white font-black shadow-xs'
+              : 'text-slate-800 dark:text-slate-200 hover:text-slate-950'
           }`}
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span className="leading-tight truncate">Recyclage</span>
+          <RefreshCw className="w-4 h-4" />
+          <span className="leading-tight truncate font-black">Recyclage</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('quiz')}
-          className={`py-1.5 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
+          className={`py-2 px-1 rounded-xl transition-all flex flex-col items-center justify-center gap-0.5 text-center cursor-pointer ${
             activeTab === 'quiz'
-              ? 'bg-amber-600 text-white font-black shadow-2xs'
-              : 'text-amber-800 dark:text-amber-300 hover:text-amber-950'
+              ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+              : 'text-amber-900 dark:text-amber-200 hover:text-amber-950'
           }`}
         >
-          <HelpCircle className="w-3.5 h-3.5" />
+          <HelpCircle className="w-4 h-4" />
           <span className="leading-tight truncate font-black">Quiz +40</span>
         </button>
       </div>
@@ -360,7 +360,7 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
         <div className="space-y-3">
           {/* Species Selector Chips */}
           <div className="space-y-1">
-            <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block px-0.5">
+            <span className="text-[11px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider block px-0.5">
               Espèces Phares de Pointe-Noire
             </span>
             <div className="grid grid-cols-3 gap-1.5">
@@ -373,16 +373,16 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                     onClick={() => setSelectedTurtle(species)}
                     className={`p-2 rounded-2xl border text-left transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-500 shadow-2xs ring-1 ring-emerald-500/30'
+                        ? 'bg-emerald-100 dark:bg-emerald-950 border-emerald-600 shadow-xs ring-2 ring-emerald-500/30'
                         : isFixora
-                        ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                        ? 'bg-white border-slate-300 text-slate-900 hover:bg-slate-50'
+                        : 'bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700'
                     }`}
                   >
-                    <span className="text-[10.5px] font-black block truncate text-slate-900 dark:text-white">
+                    <span className="text-[11px] font-black block truncate text-slate-950 dark:text-white">
                       {species.name}
                     </span>
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 italic block truncate">
+                    <span className="text-[9.5px] text-slate-700 dark:text-slate-300 italic font-bold block truncate">
                       {species.scientificName}
                     </span>
                   </button>
@@ -393,13 +393,13 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
 
           {/* Selected Species Card */}
           <div
-            className={`p-3 rounded-2xl border space-y-2.5 transition-all ${
+            className={`p-3.5 rounded-2xl border space-y-2.5 transition-all ${
               isFixora
-                ? 'bg-white border-slate-200 text-slate-800 shadow-2xs'
-                : 'bg-slate-900 border-slate-800 text-white'
+                ? 'bg-white border-slate-300 text-slate-900 shadow-md'
+                : 'bg-slate-900 border-slate-700 text-white shadow-md'
             }`}
           >
-            <div className="relative h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="relative h-28 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700">
               <img
                 src={selectedTurtle.imageUrl}
                 alt={selectedTurtle.name}
@@ -407,84 +407,84 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-2.5 text-white">
                 <span className="text-xs font-black">{selectedTurtle.name}</span>
-                <span className="text-[9px] text-emerald-200">{selectedTurtle.scientificName}</span>
+                <span className="text-[10px] text-emerald-300 font-bold">{selectedTurtle.scientificName}</span>
               </div>
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px] uppercase">Gabarit</span>
-                <span className="font-extrabold text-slate-800 dark:text-slate-100">
+            <div className="grid grid-cols-2 gap-1.5 text-[10.5px]">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-700 dark:text-slate-300 font-black block text-[9.5px] uppercase">Gabarit</span>
+                <span className="font-black text-slate-950 dark:text-white block">
                   {selectedTurtle.weight}
                 </span>
-                <span className="text-[9px] text-slate-500 block truncate">{selectedTurtle.size}</span>
+                <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block truncate">{selectedTurtle.size}</span>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700">
-                <span className="text-slate-400 font-bold block text-[9px] uppercase">Régime Marin</span>
-                <span className="font-extrabold text-slate-800 dark:text-slate-100 truncate block">
+              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <span className="text-slate-700 dark:text-slate-300 font-black block text-[9.5px] uppercase">Régime Marin</span>
+                <span className="font-black text-slate-950 dark:text-white truncate block">
                   {selectedTurtle.diet}
                 </span>
-                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 block truncate font-bold">
+                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block truncate font-black">
                   {selectedTurtle.nestingPeriod.split('(')[0]}
                 </span>
               </div>
             </div>
 
             {/* Lethal Danger Box */}
-            <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-[10.5px]">
-              <div className="flex items-center gap-1.5 font-black text-rose-800 dark:text-rose-300">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+            <div className="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/70 border border-rose-300 dark:border-rose-900 text-[11px]">
+              <div className="flex items-center gap-1.5 font-black text-rose-950 dark:text-rose-200">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                 <span>Danger Mortel : {selectedTurtle.danger}</span>
               </div>
-              <p className="text-[10px] text-rose-950 dark:text-rose-200 mt-1 leading-relaxed">
+              <p className="text-[10.5px] text-rose-950 dark:text-rose-100 mt-1 leading-relaxed font-semibold">
                 {selectedTurtle.whyDanger}
               </p>
             </div>
           </div>
 
           {/* 4 Golden Rules Box */}
-          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 space-y-2">
-            <div className="flex items-center gap-1.5 text-emerald-900 dark:text-emerald-200 font-black text-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-emerald-100/90 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 space-y-2">
+            <div className="flex items-center gap-1.5 text-emerald-950 dark:text-emerald-200 font-black text-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
               <span>Les 4 Réflexes d'Or en cas de Ponte Nocturne</span>
             </div>
 
-            <div className="space-y-1.5 text-[10px] text-emerald-950 dark:text-emerald-100">
+            <div className="space-y-1.5 text-[10.5px] text-emerald-950 dark:text-emerald-100 font-medium">
               <div className="flex items-start gap-2">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-4 h-4 rounded-full bg-emerald-700 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   1
                 </span>
                 <p>
-                  <strong className="font-extrabold">Zéro lumière vive :</strong> Éteignez torches blanches et flashs de téléphone. La lumière effraie la femelle qui fait demi-tour sans pondre.
+                  <strong className="font-black text-emerald-950 dark:text-white">Zéro lumière vive :</strong> Éteignez torches blanches et flashs de téléphone. La lumière effraie la femelle qui fait demi-tour sans pondre.
                 </p>
               </div>
 
               <div className="flex items-start gap-2">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-4 h-4 rounded-full bg-emerald-700 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   2
                 </span>
                 <p>
-                  <strong className="font-extrabold">Distance de sécurité (10 m) :</strong> Ne jamais encercler, toucher la carapace ni manipuler les nouveau-nés émergeant du sable.
+                  <strong className="font-black text-emerald-950 dark:text-white">Distance de sécurité (10 m) :</strong> Ne jamais encercler, toucher la carapace ni manipuler les nouveau-nés émergeant du sable.
                 </p>
               </div>
 
               <div className="flex items-start gap-2">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-4 h-4 rounded-full bg-emerald-700 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   3
                 </span>
                 <p>
-                  <strong className="font-extrabold">Signalement Masseko :</strong> Enregistrez la position GPS discrètement avec le tag <span className="underline">Zone de Nids</span>.
+                  <strong className="font-black text-emerald-950 dark:text-white">Signalement Masseko :</strong> Enregistrez la position GPS discrètement avec le tag <span className="underline font-black">Zone de Nids</span>.
                 </p>
               </div>
 
               <div className="flex items-start gap-2">
-                <span className="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-4 h-4 rounded-full bg-emerald-700 text-white font-black text-[9px] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                   4
                 </span>
                 <p>
-                  <strong className="font-extrabold">Alerte Renatura :</strong> Les écogardes partenaires posent une clôture grillagée pour sécuriser les œufs contre les braconniers et chiens errants.
+                  <strong className="font-black text-emerald-950 dark:text-white">Alerte Renatura :</strong> Les écogardes partenaires posent une clôture grillagée pour sécuriser les œufs contre les braconniers et chiens errants.
                 </p>
               </div>
             </div>
@@ -748,14 +748,14 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                   const isCorrect = option.correct;
 
                   let btnStyle = isFixora
-                    ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
-                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200';
+                    ? 'bg-white hover:bg-slate-50 border-slate-300 text-slate-950 font-bold'
+                    : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-100 font-bold';
 
                   if (hasAnswered) {
                     if (isCorrect) {
-                      btnStyle = 'bg-sky-100 dark:bg-sky-950 border-sky-500 text-sky-900 dark:text-sky-100 font-black';
+                      btnStyle = 'bg-emerald-100 dark:bg-emerald-950 border-emerald-500 text-emerald-950 dark:text-emerald-100 font-black';
                     } else if (isChosen) {
-                      btnStyle = 'bg-rose-100 dark:bg-rose-950 border-rose-500 text-rose-900 dark:text-rose-100';
+                      btnStyle = 'bg-rose-100 dark:bg-rose-950 border-rose-500 text-rose-950 dark:text-rose-100 font-black';
                     }
                   }
 
@@ -765,11 +765,11 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                       type="button"
                       disabled={hasAnswered}
                       onClick={() => handleSelectAnswer(optIdx)}
-                      className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center justify-between gap-2 cursor-pointer ${btnStyle}`}
+                      className={`w-full p-3 rounded-xl border text-left text-xs transition-all flex items-center justify-between gap-2 cursor-pointer shadow-2xs ${btnStyle}`}
                     >
-                      <span>{option.text}</span>
+                      <span className="leading-snug">{option.text}</span>
                       {hasAnswered && isCorrect && (
-                        <Check className="w-4 h-4 text-sky-600 shrink-0" />
+                        <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0 font-black" />
                       )}
                     </button>
                   );
@@ -778,11 +778,11 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
 
               {/* Explanation box after answer */}
               {selectedAnswers[currentQuestionIdx] !== undefined && (
-                <div className="p-2.5 rounded-xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 space-y-1">
-                  <span className="text-[10px] font-black text-sky-800 dark:text-sky-300 block uppercase">
+                <div className="p-3 rounded-xl bg-sky-100 dark:bg-sky-950/70 border border-sky-300 dark:border-sky-800 space-y-1">
+                  <span className="text-[10.5px] font-black text-sky-950 dark:text-sky-200 block uppercase">
                     Explication Pédagogique
                   </span>
-                  <p className="text-[10.5px] text-sky-950 dark:text-sky-100 leading-relaxed">
+                  <p className="text-[11px] text-sky-950 dark:text-sky-100 leading-relaxed font-semibold">
                     {QUIZ_QUESTIONS[currentQuestionIdx].explanation}
                   </p>
                 </div>
@@ -793,7 +793,7 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                 <button
                   type="button"
                   onClick={handleNextQuestion}
-                  className="w-full py-2.5 px-3 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] text-white font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm whitespace-nowrap"
+                  className="w-full py-3 px-3 rounded-xl bg-[#0A3D62] hover:bg-[#072B46] active:scale-95 text-white font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md whitespace-nowrap"
                 >
                   <span className="whitespace-nowrap">
                     {currentQuestionIdx < QUIZ_QUESTIONS.length - 1
@@ -809,48 +809,48 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
             <div
               className={`p-4 rounded-2xl border text-center space-y-3.5 ${
                 isFixora
-                  ? 'bg-white border-slate-200 text-slate-800 shadow-sm'
-                  : 'bg-slate-900 border-slate-800 text-white'
+                  ? 'bg-white border-slate-300 text-slate-900 shadow-md'
+                  : 'bg-slate-900 border-slate-700 text-white shadow-md'
               }`}
             >
-              <div className="w-14 h-14 rounded-3xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto text-amber-500">
+              <div className="w-14 h-14 rounded-3xl bg-amber-400 border border-amber-300 flex items-center justify-center mx-auto text-slate-950 shadow-md">
                 <Award className="w-8 h-8" />
               </div>
 
               <div>
-                <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-widest block">
+                <span className="text-[11px] font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-widest block">
                   Évaluation Validée
                 </span>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                <h3 className="text-lg font-black text-slate-950 dark:text-white mt-0.5">
                   {scoreCount === QUIZ_QUESTIONS.length
                     ? 'Félicitations Sentinelle Major !'
                     : 'Bravo pour votre Engagement !'}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Vous avez obtenu <strong className="text-emerald-600 dark:text-emerald-400 font-black">{scoreCount} / {QUIZ_QUESTIONS.length}</strong> bonnes réponses.
+                <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold mt-1">
+                  Vous avez obtenu <strong className="text-emerald-700 dark:text-emerald-400 font-black">{scoreCount} / {QUIZ_QUESTIONS.length}</strong> bonnes réponses.
                 </p>
               </div>
 
               {/* Diploma Card */}
-              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-900 to-teal-900 text-white text-left space-y-2 border border-emerald-500/30">
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-950 to-teal-950 text-white text-left space-y-2 border border-emerald-500/40 shadow-md">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <TurtleIcon className="w-4 h-4 text-emerald-300" />
-                    <span className="text-[10px] font-black tracking-wider uppercase text-emerald-200">
+                    <span className="text-[10.5px] font-black tracking-wider uppercase text-emerald-200">
                       Certificat Écocitoyen
                     </span>
                   </div>
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-700/80 text-emerald-100 font-bold">
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-800 text-white font-black shadow-2xs">
                     Pointe-Noire
                   </span>
                 </div>
 
                 <div className="border-t border-emerald-700/60 pt-2">
-                  <span className="text-[10px] text-emerald-200/80 block">Sentinelle Certifiée :</span>
+                  <span className="text-[10.5px] text-emerald-200 font-bold block">Sentinelle Certifiée :</span>
                   <span className="text-sm font-black text-white block">
                     {currentUser ? currentUser.fullName : 'Sentinelle Littorale Anonyme'}
                   </span>
-                  <span className="text-[9.5px] text-emerald-200/90 block mt-0.5">
+                  <span className="text-[10px] text-emerald-100 font-medium block mt-0.5">
                     Compétences validées : Détection de nids, tri des résines PET/PEHD & alerte Renatura.
                   </span>
                 </div>
@@ -862,13 +862,13 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                   <button
                     type="button"
                     onClick={handleClaimPoints}
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer whitespace-nowrap"
+                    className="w-full py-3 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 active:scale-95 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer whitespace-nowrap"
                   >
                     <Award className="w-4 h-4 shrink-0" />
                     <span className="whitespace-nowrap">Réclamer mes +40 Points Éco</span>
                   </button>
                 ) : (
-                  <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-100 text-xs font-black flex items-center justify-center gap-2 whitespace-nowrap">
+                  <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-100 text-xs font-black flex items-center justify-center gap-2 whitespace-nowrap border border-emerald-300 dark:border-emerald-800 shadow-2xs">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="whitespace-nowrap">+40 Points crédités sur votre Pass Éco !</span>
                   </div>
@@ -878,7 +878,7 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                   <button
                     type="button"
                     onClick={handleResetQuiz}
-                    className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center"
+                    className="py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-black text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center shadow-2xs"
                   >
                     <RotateCcw className="w-3.5 h-3.5 shrink-0" />
                     <span className="whitespace-nowrap">Recommencer</span>
@@ -887,7 +887,7 @@ export const EducationScreen: React.FC<EducationScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setMobileScreen('home')}
-                    className="py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center"
+                    className="py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap text-center shadow-2xs"
                   >
                     <span className="whitespace-nowrap">Retour Accueil</span>
                     <ChevronRight className="w-3.5 h-3.5 shrink-0" />
