@@ -51,9 +51,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       {/* 1. Sleek Minimalist Header */}
       <div className="flex items-center justify-between pt-1 gap-2">
         <div className="min-w-0">
-          <span className="text-[10.5px] text-slate-700 dark:text-emerald-400 font-black uppercase tracking-wider block truncate">
-            Littoral Pointe-Noire
-          </span>
           <h2 className="font-black text-lg text-slate-950 dark:text-white leading-tight truncate">
             Bonjour, {displayName} 👋
           </h2>
